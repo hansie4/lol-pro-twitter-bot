@@ -4,6 +4,7 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.util.Scanner;
 
+import com.hansvg.lcstwitterbot.League;
 import com.hansvg.lcstwitterbot.RiotApiRequester;
 
 import org.json.JSONObject;
@@ -11,6 +12,7 @@ import org.json.JSONObject;
 public class Main {
 
     private static final String riotInfoFilePath = "data\\RiotApiInfo.json";
+    private static final String playerRosterFilePath = "data\\LoL_Roster_Summer_2020 - NALCS.csv";
 
     public static void main(String[] args) {
 
@@ -18,9 +20,16 @@ public class Main {
 
             JSONObject riotJSON = new JSONObject(readInRiotFile(riotInfoFilePath));
 
+            RiotApiRequester riotApiRequester = new RiotApiRequester(getRiotApiKey(riotJSON), getRiotRegion(riotJSON),
+                    getRiotRequestsPerSecond(riotJSON));
+
+            League lcs = new League(playerRosterFilePath);
+
+            lcs.loadPlayerSummonerIDs(riotApiRequester);
+            // lcs.loadActiveGames(riotApiRequester);
+
         } catch (Exception e) {
-            System.out.println(e.getLocalizedMessage());
-            System.out.println(e.getStackTrace());
+            System.out.println(e);
         }
 
     }
@@ -47,8 +56,8 @@ public class Main {
         return riotJSON.get("region").toString();
     }
 
-    private static int getRiotRequestsPerSecond(JSONObject riotJSON) {
-        return riotJSON.getInt("requestsPerSecond");
+    private static double getRiotRequestsPerSecond(JSONObject riotJSON) {
+        return riotJSON.getDouble("requestsPerSecond");
     }
 
 }

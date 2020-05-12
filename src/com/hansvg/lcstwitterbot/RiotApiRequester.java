@@ -12,10 +12,10 @@ public class RiotApiRequester {
 
     private String ApiKey;
     private String region;
-    private int requestsASecond;
+    private double requestsASecond;
     private HttpClient httpClient;
 
-    public RiotApiRequester(String ApiKey, String region, int requestsASecond) {
+    public RiotApiRequester(String ApiKey, String region, double requestsASecond) {
         this.ApiKey = ApiKey;
         this.region = region;
         this.requestsASecond = requestsASecond;
@@ -31,7 +31,7 @@ public class RiotApiRequester {
 
             HttpResponse<String> response = httpClient.send(request, BodyHandlers.ofString());
 
-            Thread.sleep(requestsASecond * 1000);
+            Thread.sleep((long) (requestsASecond * 1000));
 
             JSONObject responseJSON = new JSONObject(response.body());
 
@@ -82,7 +82,7 @@ public class RiotApiRequester {
 
                 HttpResponse<String> response = httpClient.send(request, BodyHandlers.ofString());
 
-                Thread.sleep(requestsASecond * 1000);
+                Thread.sleep((long) (requestsASecond * 1000));
 
                 JSONObject responseJSON = new JSONObject(response.body());
 

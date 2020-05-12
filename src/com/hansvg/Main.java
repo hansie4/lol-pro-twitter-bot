@@ -27,10 +27,15 @@ public class Main {
             League lcs = new League(playerRosterFilePath);
 
             lcs.loadPlayerSummonerIDs(riotApiRequester);
-            lcs.loadActiveGames(riotApiRequester);
+            lcs.loadActiveSoloQueueGames(riotApiRequester);
 
             for (Game g : lcs.getActiveGames()) {
-                System.out.println("GameID: " + g.getGameID());
+                System.out.println("GameID: " + g.getGameID() + "| Participants: ");
+
+                for (JSONObject o : g.getParticipants()) {
+                    System.out.print(o.getString("summonerName") + " | ");
+                }
+                System.out.println();
             }
 
         } catch (Exception e) {

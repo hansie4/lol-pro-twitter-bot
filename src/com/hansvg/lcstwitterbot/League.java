@@ -73,7 +73,7 @@ public class League {
         System.out.println("\n-------------Finished loading summoner IDs---------------");
     }
 
-    public void loadActiveGames(RiotApiRequester apiRequester) {
+    public void loadActiveSoloQueueGames(RiotApiRequester apiRequester) {
         System.out.println("-------------Beginning to load Active Games--------------");
         double percentComplete = 0.0;
         for (int i = 0; i < players.size(); i++) {
@@ -82,7 +82,7 @@ public class League {
                 JSONObject gameObjJSON = apiRequester.getLiveGameInfo(summonerID);
 
                 if (gameObjJSON != null) {
-                    Game scannedGame = new Game(gameObjJSON);
+                    Game scannedGame = new Game(gameObjJSON, false);
                     activeGames.add(scannedGame);
                 }
             }

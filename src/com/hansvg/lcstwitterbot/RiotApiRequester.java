@@ -71,7 +71,7 @@ public class RiotApiRequester {
         }
     }
 
-    public Game getLiveGameInfo(String summonerID) {
+    public JSONObject getLiveGameInfo(String summonerID) {
         try {
             if (summonerID != null) {
                 URI requestURI = new URI(
@@ -87,8 +87,7 @@ public class RiotApiRequester {
                 JSONObject responseJSON = new JSONObject(response.body());
 
                 if (response.statusCode() == 200) {
-                    Game liveGame = new Game(responseJSON);
-                    return liveGame;
+                    return responseJSON;
                 } else {
                     if (response.statusCode() == 400) {
                         System.out.println("400: Bad Request from: getLiveGameInfo(" + summonerID + ")");
@@ -97,7 +96,8 @@ public class RiotApiRequester {
                     } else if (response.statusCode() == 403) {
                         System.out.println("403: Forbidden from: getLiveGameInfo(" + summonerID + ")");
                     } else if (response.statusCode() == 404) {
-                        System.out.println("404: Data Not Found from: getLiveGameInfo(" + summonerID + ")");
+                        // System.out.println("404: Data Not Found from: getLiveGameInfo(" + summonerID
+                        // + ")");
                     } else if (response.statusCode() == 405) {
                         System.out.println("405: Method Not Allowed from: getLiveGameInfo(" + summonerID + ")");
                     } else if (response.statusCode() == 415) {

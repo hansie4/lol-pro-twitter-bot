@@ -20,8 +20,7 @@ public class Game {
         this.mapID = gameJSON.getInt("mapId");
         this.gameStartTime = gameJSON.getLong("gameStartTime");
         this.gameLength = gameJSON.getLong("gameLength");
-
-        System.out.println("GameID: " + gameID);
+        participantSummonerIDs = new ArrayList<>();
 
     }
 

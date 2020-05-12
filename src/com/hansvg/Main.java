@@ -4,6 +4,7 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.util.Scanner;
 
+import com.hansvg.lcstwitterbot.Game;
 import com.hansvg.lcstwitterbot.League;
 import com.hansvg.lcstwitterbot.RiotApiRequester;
 
@@ -18,15 +19,19 @@ public class Main {
 
         try {
 
-            JSONObject riotJSON = new JSONObject(readInRiotFile(riotInfoFilePath));
+            JSONObject riotApiJSON = new JSONObject(readInRiotFile(riotInfoFilePath));
 
-            RiotApiRequester riotApiRequester = new RiotApiRequester(getRiotApiKey(riotJSON), getRiotRegion(riotJSON),
-                    getRiotRequestsPerSecond(riotJSON));
+            RiotApiRequester riotApiRequester = new RiotApiRequester(getRiotApiKey(riotApiJSON),
+                    getRiotRegion(riotApiJSON), getRiotRequestsPerSecond(riotApiJSON));
 
             League lcs = new League(playerRosterFilePath);
 
             lcs.loadPlayerSummonerIDs(riotApiRequester);
-            // lcs.loadActiveGames(riotApiRequester);
+            lcs.loadActiveGames(riotApiRequester);
+
+            for (Game g : lcs.getActiveGames()) {
+                System.out.println("GameID: " + g.getGameID());
+            }
 
         } catch (Exception e) {
             System.out.println(e);

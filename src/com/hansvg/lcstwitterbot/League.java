@@ -5,6 +5,8 @@ import java.io.FileNotFoundException;
 import java.util.ArrayList;
 import java.util.Scanner;
 
+import org.json.JSONObject;
+
 public class League {
 
     private ArrayList<Player> players;
@@ -12,6 +14,7 @@ public class League {
 
     public League(String playerRosterFilePath) throws FileNotFoundException {
         players = new ArrayList<>();
+        activeGames = new ArrayList<>();
         readInPlayers(playerRosterFilePath);
     }
 
@@ -45,7 +48,7 @@ public class League {
     }
 
     public void loadPlayerSummonerIDs(RiotApiRequester apiRequester) {
-        System.out.println("-------------Beginning to load summoner IDs------------");
+        System.out.println("-------------Beginning to load summoner IDs--------------");
         double percentComplete = 0.0;
         for (int i = 0; i < players.size(); i++) {
             Player currentPlayer = players.get(i);
@@ -55,7 +58,7 @@ public class League {
 
             // Loading bar
             percentComplete = ((double) i / (double) (players.size() - 1));
-            System.out.print("    |");
+            System.out.print("|");
             for (int c = 0; c < 50; c++) {
                 if (c < (int) (percentComplete * 50)) {
                     System.out.print("#");
@@ -66,24 +69,36 @@ public class League {
             System.out.print("| " + (int) (percentComplete * 100) + "%\r");
 
         }
-        System.out.println("\n-------------Finished loading summoner IDs-------------");
+        System.out.println("\n-------------Finished loading summoner IDs---------------");
     }
 
     public void loadActiveGames(RiotApiRequester apiRequester) {
-
-        System.out.println("------------Beginning to load Active Games------------");
-        int gamesScanned = 0;
+        System.out.println("-------------Beginning to load Active Games--------------");
+        double percentComplete = 0.0;
         for (int i = 0; i < players.size(); i++) {
             Player currentPlayer = players.get(i);
-            for (int j = 0; j < currentPlayer.getSummonerIDs().length; j++) {
+            for (String summonerID : currentPlayer.getSummonerIDs()) {
+                JSONObject gameObjJSON = apiRequester.getLiveGameInfo(summonerID);
 
-                Game scannedGame = apiRequester.getLiveGameInfo(currentPlayer.getSummonerIDs()[j]);
-                gamesScanned++;
-                System.out.println(gamesScanned + ": " + scannedGame);
+                if (gameObjJSON != null) {
+                    Game scannedGame = new Game(gameObjJSON);
+                    activeGames.add(scannedGame);
+                }
             }
-        }
 
-        System.out.println("-------------Finish loding Active Games---------------");
+            // Loading bar
+            percentComplete = ((double) i / (double) (players.size() - 1));
+            System.out.print("|");
+            for (int c = 0; c < 50; c++) {
+                if (c < (int) (percentComplete * 50)) {
+                    System.out.print("#");
+                } else {
+                    System.out.print(" ");
+                }
+            }
+            System.out.print("| " + (int) (percentComplete * 100) + "%\r");
+        }
+        System.out.println("\n---------------Finish loding Active Games----------------");
 
     }
 

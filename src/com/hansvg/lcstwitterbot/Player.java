@@ -22,8 +22,8 @@ public class Player {
         this.team = team;
         this.twitterHandle = twitterHandle;
         this.twitchUsername = twitchUsername;
-        this.summonerNames = accounts;
-        summonerIDs = new String[accounts.length];
+        this.summonerNames = accounts.clone();
+        summonerIDs = new String[summonerNames.length];
     }
 
     public String getPlayerName() {

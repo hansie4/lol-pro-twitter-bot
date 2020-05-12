@@ -3,6 +3,7 @@ package com.hansvg.lcstwitterbot;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Scanner;
 
 import org.json.JSONObject;
@@ -99,7 +100,23 @@ public class League {
             System.out.print("| " + (int) (percentComplete * 100) + "%\r");
         }
         System.out.println("\n---------------Finish loding Active Games----------------");
+        mergeGames();
+    }
 
+    private void mergeGames() {
+        this.activeGames.removeAll(Collections.singleton(null));
+
+        ArrayList<String> uniqueGameIDs = new ArrayList<>();
+        ArrayList<Game> uniqueGames = new ArrayList<>();
+
+        for (Game game : activeGames) {
+            if (!uniqueGameIDs.contains(game.getGameID())) {
+                uniqueGameIDs.add(game.getGameID());
+                uniqueGames.add(game);
+            }
+        }
+
+        this.activeGames = uniqueGames;
     }
 
 }

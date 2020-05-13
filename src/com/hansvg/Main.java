@@ -4,7 +4,6 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.util.Scanner;
 
-import com.hansvg.lcstwitterbot.Game;
 import com.hansvg.lcstwitterbot.League;
 import com.hansvg.lcstwitterbot.RiotApiRequester;
 
@@ -29,13 +28,10 @@ public class Main {
             lcs.loadPlayerSummonerIDs(riotApiRequester);
             lcs.loadActiveSoloQueueGames(riotApiRequester);
 
-            for (Game g : lcs.getActiveGames()) {
-                System.out.println("GameID: " + g.getGameID() + "| Participants: ");
+            System.out.println("Number of Unique Scanned Games: " + lcs.getActiveGames().size());
 
-                for (JSONObject o : g.getParticipants()) {
-                    System.out.print(o.getString("summonerName") + " | ");
-                }
-                System.out.println();
+            for (int i = 0; i < lcs.getActiveGames().size(); i++) {
+                lcs.getActiveGames().get(i).printGameInfo();
             }
 
         } catch (Exception e) {

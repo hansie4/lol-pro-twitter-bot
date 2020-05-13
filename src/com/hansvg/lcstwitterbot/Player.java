@@ -7,6 +7,7 @@ public class Player {
     }
 
     private String playerName;
+    private int playerScore;
     private Position position;
     private String team;
     private String twitterHandle;
@@ -14,10 +15,11 @@ public class Player {
     private String[] summonerNames;
     private String[] summonerIDs;
 
-    public Player(String playerName, String position, String team, String twitterHandle, String twitchUsername,
-            String[] accounts) {
+    public Player(String playerName, String playerScore, String position, String team, String twitterHandle,
+            String twitchUsername, String[] accounts) {
 
         this.playerName = playerName;
+        this.playerScore = Integer.parseInt(playerScore);
         this.position = stringToPosition(position);
         this.team = team;
         this.twitterHandle = twitterHandle;
@@ -28,6 +30,10 @@ public class Player {
 
     public String getPlayerName() {
         return this.playerName;
+    }
+
+    public int getPlayerScore() {
+        return this.playerScore;
     }
 
     public Position getPosition() {

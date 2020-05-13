@@ -13,6 +13,9 @@ public class Game {
     private long gameStartTime;
     private long gameLength;
     private ArrayList<String[]> participantInfo;
+    private int team1Score;
+    private int team2Score;
+    private int gameScore;
     private boolean isLcsGame;
 
     public Game(JSONObject gameJSON, boolean isLcsGame) {
@@ -65,6 +68,30 @@ public class Game {
         return this.isLcsGame;
     }
 
+    public int getGameScore() {
+        return this.gameScore;
+    }
+
+    public void setGameScore(int gameScore) {
+        this.gameScore = gameScore;
+    }
+
+    public int getTeam1Score() {
+        return this.team1Score;
+    }
+
+    public void setTeam1Score(int team1Score) {
+        this.team1Score = team1Score;
+    }
+
+    public int getTeam2Score() {
+        return this.team2Score;
+    }
+
+    public void setTeam2Score(int team2Score) {
+        this.team2Score = team2Score;
+    }
+
     public ArrayList<ArrayList<String[]>> getTeams() {
 
         ArrayList<ArrayList<String[]>> teamList = new ArrayList<>();
@@ -94,6 +121,7 @@ public class Game {
         System.out.println("Game Type: " + this.gameType);
         System.out.println("Game Start Time: " + this.gameStartTime);
         System.out.println("Game Length: " + this.gameLength);
+        System.out.println("Game Score: " + this.gameScore);
         System.out.println("-------------------------------------------------");
         System.out.println("         Team 1         |         Team 2         ");
 

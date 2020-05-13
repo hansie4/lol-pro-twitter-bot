@@ -36,13 +36,11 @@ public class League {
             if (i == 0) {
                 playerScanner.nextLine();
             } else {
-                playerInfoValues = playerScanner.nextLine().split(",", 6);
+                playerInfoValues = playerScanner.nextLine().split(",", 7);
 
-                if (!playerInfoValues[0].equals("UNKNOWN")) {
-                    Player newPlayer = new Player(playerInfoValues[0], playerInfoValues[1], playerInfoValues[2],
-                            playerInfoValues[3], playerInfoValues[4], playerInfoValues[5].split(","));
-                    players.add(newPlayer);
-                }
+                Player newPlayer = new Player(playerInfoValues[0], playerInfoValues[1], playerInfoValues[2],
+                        playerInfoValues[3], playerInfoValues[4], playerInfoValues[5], playerInfoValues[6].split(","));
+                players.add(newPlayer);
             }
         }
         playerScanner.close();
@@ -100,7 +98,8 @@ public class League {
             System.out.print("| " + (int) (percentComplete * 100) + "%\r");
         }
         System.out.println("\n---------------Finish loding Active Games----------------");
-        mergeGames();
+        this.mergeGames();
+        this.assignGameScores();
     }
 
     private void mergeGames() {
@@ -117,6 +116,53 @@ public class League {
         }
 
         this.activeGames = uniqueGames;
+    }
+
+    private void assignGameScores() {
+
+        for (Game activeGame : this.activeGames) {
+
+            int team1Score = 0;
+            int team2Score = 0;
+
+            ArrayList<ArrayList<String[]>> teams = activeGame.getTeams();
+            ArrayList<String[]> team1 = teams.get(0);
+            ArrayList<String[]> team2 = teams.get(1);
+
+            for (String[] player : team1) {
+                Player playerObject = getPlayerFromAccountName(player[1]);
+                if (playerObject != null) {
+                    team1Score += playerObject.getPlayerScore();
+                }
+            }
+
+            for (String[] player : team2) {
+                Player playerObject = getPlayerFromAccountName(player[1]);
+                if (playerObject != null) {
+                    team2Score += playerObject.getPlayerScore();
+                }
+            }
+
+            activeGame.setTeam1Score(team1Score);
+            activeGame.setTeam2Score(team2Score);
+            activeGame.setGameScore(team1Score + team2Score);
+        }
+
+    }
+
+    private Player getPlayerFromAccountName(String summonerName) {
+
+        Player foundPlayer = null;
+
+        for (Player player : players) {
+            for (String playerSummonerName : player.getSummonerNames()) {
+                if (playerSummonerName.equals(summonerName)) {
+                    return player;
+                }
+            }
+        }
+
+        return foundPlayer;
     }
 
 }

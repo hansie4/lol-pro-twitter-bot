@@ -116,7 +116,7 @@ public class Game {
 
     public void printGameInfo() {
 
-        System.out.println("----Game Info for GameID: " + this.gameID + "----");
+        System.out.println("--------Game Info for GameID: " + this.gameID + "---------");
         System.out.println("MapID: " + this.mapID);
         System.out.println("Game Type: " + this.gameType);
         System.out.println("Game Start Time: " + this.gameStartTime);

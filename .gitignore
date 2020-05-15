@@ -1,2 +1,3 @@
 .vscode
 data/RiotApiInfo.json
+*.json

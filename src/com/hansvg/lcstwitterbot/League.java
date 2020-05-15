@@ -81,7 +81,7 @@ class League {
     }
 
     protected void loadSoloQueueGames(RiotApiRequester riotApiRequester) {
-        System.out.println("------------Beginning to load Solo Queue Games-----------");
+        System.out.println("-----------Beginning to load Solo Queue Games------------");
         double percentComplete = 0.0;
         for (int i = 0; i < this.players.size(); i++) {
             Player currentPlayer = this.players.get(i);
@@ -113,7 +113,7 @@ class League {
             }
             System.out.print("| " + (int) (percentComplete * 100) + "%\r");
         }
-        System.out.println("\n-------------Finish loding Solo Queue Games--------------");
+        System.out.println("\n------------Finished loading Solo Queue Games------------");
         this.mergeSoloQueueGames();
     }
 

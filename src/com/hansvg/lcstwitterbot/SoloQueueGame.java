@@ -14,6 +14,7 @@ class SoloQueueGame {
     private long gameLength;
     private String platformId;
     private String gameMode;
+    private Long gameQueueConfigId;
     private ArrayList<String[]> participants;
 
     protected SoloQueueGame(League league, JSONObject gameJSON) {
@@ -25,6 +26,7 @@ class SoloQueueGame {
         this.gameLength = gameJSON.getLong("gameLength");
         this.platformId = gameJSON.getString("platformId");
         this.gameMode = gameJSON.getString("gameMode");
+        this.gameQueueConfigId = gameJSON.getLong("gameQueueConfigId");
         this.participants = new ArrayList<>();
 
         JSONArray gameParticipants = gameJSON.getJSONArray("participants");
@@ -67,6 +69,10 @@ class SoloQueueGame {
 
     protected String getGameMode() {
         return this.gameMode;
+    }
+
+    protected long getGameQueueConfigId() {
+        return this.gameQueueConfigId;
     }
 
     protected ArrayList<String[]> getParticipants() {
@@ -112,6 +118,7 @@ class SoloQueueGame {
         System.out.println("Game Type: " + this.gameType);
         System.out.println("Game Mode: " + this.gameMode);
         System.out.println("Platform ID: " + this.platformId);
+        System.out.println("Game Queue Config ID: " + this.gameQueueConfigId);
         System.out.println("Game Start Time: " + this.gameStartTime);
         System.out.println("Game Length: " + this.gameLength);
         System.out.println("-------------------------------------------------");

@@ -8,51 +8,61 @@ import java.util.Scanner;
 
 import org.json.JSONObject;
 
-public class League {
+class League {
 
     private ArrayList<Player> players;
-    private ArrayList<Game> activeGames;
+    private ArrayList<SoloQueueGame> activeSoloQueueGames;
 
-    public League(String playerRosterFilePath) throws FileNotFoundException {
-        players = new ArrayList<>();
-        activeGames = new ArrayList<>();
-        readInPlayers(playerRosterFilePath);
+    League() {
+        this.players = new ArrayList<>();
+        this.activeSoloQueueGames = new ArrayList<>();
     }
 
-    public ArrayList<Player> getPlayers() {
+    protected ArrayList<Player> getPlayers() {
         return this.players;
     }
 
-    public ArrayList<Game> getActiveGames() {
-        return this.activeGames;
+    protected ArrayList<SoloQueueGame> getActiveSoloQueueGames() {
+        return this.activeSoloQueueGames;
     }
 
-    private void readInPlayers(String playerRosterFilePath) throws FileNotFoundException {
-        File playerRosterFile = new File(playerRosterFilePath);
-        Scanner playerScanner = new Scanner(playerRosterFile);
-        String[] playerInfoValues;
+    protected void loadPlayers(File playerRosterFile) throws FileNotFoundException {
+        Scanner playerRosterScanner = new Scanner(playerRosterFile);
 
-        for (int i = 0; playerScanner.hasNextLine(); i++) {
-            if (i == 0) {
-                playerScanner.nextLine();
-            } else {
-                playerInfoValues = playerScanner.nextLine().split(",", 7);
+        if (playerRosterScanner.hasNextLine()) {
+            playerRosterScanner.nextLine();
 
-                Player newPlayer = new Player(playerInfoValues[0], playerInfoValues[1], playerInfoValues[2],
-                        playerInfoValues[3], playerInfoValues[4], playerInfoValues[5], playerInfoValues[6].split(","));
-                players.add(newPlayer);
+            while (playerRosterScanner.hasNextLine()) {
+
+                String[] playerInfo = playerRosterScanner.nextLine().split(",", 7);
+
+                Player readInPlayer = new Player(playerInfo[0], playerInfo[1], playerInfo[2], playerInfo[3],
+                        playerInfo[4], playerInfo[5], playerInfo[6].split(","));
+
+                players.add(readInPlayer);
             }
         }
-        playerScanner.close();
+        playerRosterScanner.close();
     }
 
-    public void loadPlayerSummonerIDs(RiotApiRequester apiRequester) {
+    protected void loadPlayerSummonerIds(RiotApiRequester riotApiRequester) {
         System.out.println("-------------Beginning to load summoner IDs--------------");
         double percentComplete = 0.0;
-        for (int i = 0; i < players.size(); i++) {
-            Player currentPlayer = players.get(i);
-            for (int j = 0; j < currentPlayer.getSummonerNames().length; j++) {
-                currentPlayer.getSummonerIDs()[j] = apiRequester.getSummonerID(currentPlayer.getSummonerNames()[j]);
+        for (int i = 0; i < this.players.size(); i++) {
+
+            Player currentPlayer = this.players.get(i);
+            String[] summonerNames = currentPlayer.getSummonerNames();
+
+            for (int j = 0; j < summonerNames.length; j++) {
+
+                String summonerIdForSummonerName = riotApiRequester.getSummoner(summonerNames[j]).getString("id");
+
+                if (summonerIdForSummonerName != null) {
+                    currentPlayer.getSummonerIds()[j] = summonerIdForSummonerName;
+                } else {
+                    System.out.println("Null summoner ID for summoner name: " + summonerNames[j]);
+                    currentPlayer.getSummonerIds()[j] = null;
+                }
             }
 
             // Loading bar
@@ -71,17 +81,24 @@ public class League {
         System.out.println("\n-------------Finished loading summoner IDs---------------");
     }
 
-    public void loadActiveSoloQueueGames(RiotApiRequester apiRequester) {
-        System.out.println("-------------Beginning to load Active Games--------------");
+    protected void loadSoloQueueGames(RiotApiRequester riotApiRequester) {
+        System.out.println("------------Beginning to load Solo Queue Games-----------");
         double percentComplete = 0.0;
-        for (int i = 0; i < players.size(); i++) {
-            Player currentPlayer = players.get(i);
-            for (String summonerID : currentPlayer.getSummonerIDs()) {
-                JSONObject gameObjJSON = apiRequester.getLiveGameInfo(summonerID);
+        for (int i = 0; i < this.players.size(); i++) {
+            Player currentPlayer = this.players.get(i);
+            for (int j = 0; j < currentPlayer.getSummonerIds().length; j++) {
 
-                if (gameObjJSON != null) {
-                    Game scannedGame = new Game(gameObjJSON, false);
-                    activeGames.add(scannedGame);
+                String summonerID = currentPlayer.getSummonerIds()[j];
+
+                if (summonerID != null) {
+                    JSONObject gameJSON = riotApiRequester.getLiveGameInfo(summonerID);
+
+                    if (gameJSON != null) {
+                        SoloQueueGame newSoloQueueGame = new SoloQueueGame(this, gameJSON);
+                        this.activeSoloQueueGames.add(newSoloQueueGame);
+                    }
+                } else {
+                    System.out.println("Null SummonerID: " + summonerID);
                 }
             }
 
@@ -97,72 +114,42 @@ public class League {
             }
             System.out.print("| " + (int) (percentComplete * 100) + "%\r");
         }
-        System.out.println("\n---------------Finish loding Active Games----------------");
-        this.mergeGames();
-        this.assignGameScores();
+        System.out.println("\n-------------Finish loding Solo Queue Games--------------");
+        this.mergeSoloQueueGames();
     }
 
-    private void mergeGames() {
-        this.activeGames.removeAll(Collections.singleton(null));
+    protected void mergeSoloQueueGames() {
+        this.activeSoloQueueGames.removeAll(Collections.singleton(null));
 
-        ArrayList<String> uniqueGameIDs = new ArrayList<>();
-        ArrayList<Game> uniqueGames = new ArrayList<>();
+        ArrayList<Long> uniqueGameIDs = new ArrayList<>();
+        ArrayList<SoloQueueGame> uniqueGames = new ArrayList<>();
 
-        for (Game game : activeGames) {
-            if (!uniqueGameIDs.contains(game.getGameID())) {
-                uniqueGameIDs.add(game.getGameID());
-                uniqueGames.add(game);
+        for (SoloQueueGame soloQueueGame : activeSoloQueueGames) {
+            if (!uniqueGameIDs.contains(soloQueueGame.getGameId())) {
+                uniqueGameIDs.add(soloQueueGame.getGameId());
+                uniqueGames.add(soloQueueGame);
             }
         }
 
-        this.activeGames = uniqueGames;
+        this.activeSoloQueueGames = uniqueGames;
     }
 
-    private void assignGameScores() {
-
-        for (Game activeGame : this.activeGames) {
-
-            int team1Score = 0;
-            int team2Score = 0;
-
-            ArrayList<ArrayList<String[]>> teams = activeGame.getTeams();
-            ArrayList<String[]> team1 = teams.get(0);
-            ArrayList<String[]> team2 = teams.get(1);
-
-            for (String[] player : team1) {
-                Player playerObject = getPlayerFromAccountName(player[1]);
-                if (playerObject != null) {
-                    team1Score += playerObject.getPlayerScore();
-                }
+    protected Player getPlayerFromSummonerName(String summonerName) {
+        for (Player p : this.players) {
+            if (p.ownsSummonerName(summonerName)) {
+                return p;
             }
-
-            for (String[] player : team2) {
-                Player playerObject = getPlayerFromAccountName(player[1]);
-                if (playerObject != null) {
-                    team2Score += playerObject.getPlayerScore();
-                }
-            }
-
-            activeGame.setTeam1Score(team1Score);
-            activeGame.setTeam2Score(team2Score);
-            activeGame.setGameScore(team1Score + team2Score);
         }
-
+        return null;
     }
 
-    private Player getPlayerFromAccountName(String summonerName) {
-
-        Player foundPlayer = null;
-
-        for (Player player : players) {
-            for (String playerSummonerName : player.getSummonerNames()) {
-                if (playerSummonerName.equals(summonerName)) {
-                    return player;
-                }
+    protected Player getPlayerFromSummonerId(String summonerId) {
+        for (Player p : this.players) {
+            if (p.ownsSummonerId(summonerId)) {
+                return p;
             }
         }
-
-        return foundPlayer;
+        return null;
     }
 
 }

@@ -1,70 +1,85 @@
 package com.hansvg.lcstwitterbot;
 
-public class Player {
+class Player {
 
-    public enum Position {
+    protected enum Position {
         TOP, JUNGLE, MID, ADC, SUPPORT;
     }
 
-    private String playerName;
-    private int playerScore;
+    private String name;
+    private int watchValue;
     private Position position;
     private String team;
     private String twitterHandle;
     private String twitchUsername;
     private String[] summonerNames;
-    private String[] summonerIDs;
+    private String[] summonerIds;
 
-    public Player(String playerName, String playerScore, String position, String team, String twitterHandle,
-            String twitchUsername, String[] accounts) {
+    protected Player(String name, String watchValue, String position, String team, String twitterHandle,
+            String twitchUsername, String[] summonerNames) {
 
-        this.playerName = playerName;
-        this.playerScore = Integer.parseInt(playerScore);
-        this.position = stringToPosition(position);
+        this.name = name;
+        this.watchValue = Integer.parseInt(watchValue);
+        this.position = getPositionFromString(position);
         this.team = team;
         this.twitterHandle = twitterHandle;
         this.twitchUsername = twitchUsername;
-        this.summonerNames = accounts.clone();
-        summonerIDs = new String[summonerNames.length];
+        this.summonerNames = summonerNames;
+
+        summonerIds = new String[summonerNames.length];
     }
 
-    public String getPlayerName() {
-        return this.playerName;
+    protected String getName() {
+        return this.name;
     }
 
-    public int getPlayerScore() {
-        return this.playerScore;
+    protected int getWatchValue() {
+        return this.watchValue;
     }
 
-    public Position getPosition() {
+    protected Position getPosition() {
         return this.position;
     }
 
-    public String getTeam() {
+    protected String getTeam() {
         return this.team;
     }
 
-    public String getTwitterHandle() {
+    protected String getTwitterHandle() {
         return this.twitterHandle;
     }
 
-    public String getTwitchUsername() {
+    protected String getTwitchUsername() {
         return this.twitchUsername;
     }
 
-    public String[] getSummonerNames() {
+    protected String[] getSummonerNames() {
         return this.summonerNames;
     }
 
-    public String[] getSummonerIDs() {
-        return this.summonerIDs;
+    protected String[] getSummonerIds() {
+        return this.summonerIds;
     }
 
-    public void setSummonerIDs(String[] summonerIDs) {
-        this.summonerIDs = summonerIDs;
+    protected boolean ownsSummonerName(String summonerName) {
+        for (int i = 0; i < this.summonerNames.length; i++) {
+            if (summonerName.equals(this.summonerNames[i])) {
+                return true;
+            }
+        }
+        return false;
     }
 
-    private Position stringToPosition(String position) {
+    protected boolean ownsSummonerId(String summonerId) {
+        for (int i = 0; i < this.summonerIds.length; i++) {
+            if (summonerId.equals(this.summonerIds[i])) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private Position getPositionFromString(String position) {
         if (position.equals("TOP")) {
             return Position.TOP;
         } else if (position.equals("JUNGLE")) {

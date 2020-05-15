@@ -54,13 +54,12 @@ class League {
             String[] summonerNames = currentPlayer.getSummonerNames();
 
             for (int j = 0; j < summonerNames.length; j++) {
+                JSONObject summonerJSON = riotApiRequester.getSummoner(summonerNames[j]);
 
-                String summonerIdForSummonerName = riotApiRequester.getSummoner(summonerNames[j]).getString("id");
-
-                if (summonerIdForSummonerName != null) {
-                    currentPlayer.getSummonerIds()[j] = summonerIdForSummonerName;
+                if (summonerJSON != null) {
+                    currentPlayer.getSummonerIds()[j] = summonerJSON.getString("id");
                 } else {
-                    System.out.println("Null summoner ID for summoner name: " + summonerNames[j]);
+                    // LOG SummonerName is invalid for currentPlayer.getSummonerNames()[j]
                     currentPlayer.getSummonerIds()[j] = null;
                 }
             }
@@ -98,7 +97,7 @@ class League {
                         this.activeSoloQueueGames.add(newSoloQueueGame);
                     }
                 } else {
-                    System.out.println("Null SummonerID: " + summonerID);
+                    // LOG System.out.println("Null SummonerID: " + summonerID);
                 }
             }
 

@@ -83,26 +83,25 @@ class League {
     protected void loadSoloQueueGames(RiotApiRequester riotApiRequester) {
         System.out.println("-----------Beginning to load Solo Queue Games------------");
         double percentComplete = 0.0;
-        for (int i = 0; i < this.players.size(); i++) {
-            Player currentPlayer = this.players.get(i);
-            for (int j = 0; j < currentPlayer.getSummonerIds().length; j++) {
+        ArrayList<String> idsToScan = this.getAllSummonerIds();
+        int originalNumberOfIdsToScan = idsToScan.size();
 
-                String summonerID = currentPlayer.getSummonerIds()[j];
+        while (idsToScan.size() > 0) {
+            System.out.println("Ids left to scan: " + idsToScan.size());
+            JSONObject gameJSON = riotApiRequester.getLiveGameInfo(idsToScan.get(0));
 
-                if (summonerID != null) {
-                    JSONObject gameJSON = riotApiRequester.getLiveGameInfo(summonerID);
-
-                    if (gameJSON != null) {
-                        SoloQueueGame newSoloQueueGame = new SoloQueueGame(this, gameJSON);
-                        this.activeSoloQueueGames.add(newSoloQueueGame);
-                    }
-                } else {
-                    // LOG System.out.println("Null SummonerID: " + summonerID);
-                }
+            if (gameJSON != null) {
+                SoloQueueGame newSoloQueueGame = new SoloQueueGame(this, gameJSON);
+                this.activeSoloQueueGames.add(newSoloQueueGame);
+                updateIDsToScan(idsToScan, newSoloQueueGame.getParticipants());
+            } else {
+                // LOG GameJSON null for idsToScan.get(i)
+                idsToScan.remove(0);
             }
 
             // Loading bar
-            percentComplete = ((double) i / (double) (players.size() - 1));
+            percentComplete = ((double) (originalNumberOfIdsToScan - idsToScan.size())
+                    / (double) (originalNumberOfIdsToScan));
             System.out.print("|");
             for (int c = 0; c < 50; c++) {
                 if (c < (int) (percentComplete * 50)) {
@@ -111,13 +110,14 @@ class League {
                     System.out.print(" ");
                 }
             }
-            System.out.print("| " + (int) (percentComplete * 100) + "%\r");
+
         }
+
         System.out.println("\n------------Finished loading Solo Queue Games------------");
         this.mergeSoloQueueGames();
     }
 
-    protected void mergeSoloQueueGames() {
+    private void mergeSoloQueueGames() {
         this.activeSoloQueueGames.removeAll(Collections.singleton(null));
 
         ArrayList<Long> uniqueGameIDs = new ArrayList<>();
@@ -149,6 +149,33 @@ class League {
             }
         }
         return null;
+    }
+
+    private ArrayList<String> getAllSummonerIds() {
+        ArrayList<String> ids = new ArrayList<>();
+        for (Player p : this.players) {
+            for (String id : p.getSummonerIds()) {
+                if (id != null) {
+                    ids.add(id);
+                }
+            }
+        }
+        return ids;
+    }
+
+    private void updateIDsToScan(ArrayList<String> idList, ArrayList<String[]> participantsToRemove) {
+
+        String[] idsToRemove = new String[participantsToRemove.size()];
+        for (int i = 0; i < participantsToRemove.size(); i++) {
+            idsToRemove[i] = participantsToRemove.get(i)[1];
+        }
+
+        for (int i = 0; i < idsToRemove.length; i++) {
+            if (idList.contains(idsToRemove[i])) {
+                idList.remove(idsToRemove[i]);
+            }
+        }
+
     }
 
 }

@@ -77,22 +77,23 @@ class League {
             System.out.print("| " + (int) (percentComplete * 100) + "%\r");
 
         }
-        System.out.println("\n-------------Finished loading summoner IDs---------------");
+        System.out.println("\n-------------Finished loading summoner IDs---------------\n");
     }
 
     protected void loadSoloQueueGames(RiotApiRequester riotApiRequester) {
         System.out.println("-----------Beginning to load Solo Queue Games------------");
+
         double percentComplete = 0.0;
         ArrayList<String> idsToScan = this.getAllSummonerIds();
         int originalNumberOfIdsToScan = idsToScan.size();
 
         while (idsToScan.size() > 0) {
-            System.out.println("Ids left to scan: " + idsToScan.size());
             JSONObject gameJSON = riotApiRequester.getLiveGameInfo(idsToScan.get(0));
 
             if (gameJSON != null) {
                 SoloQueueGame newSoloQueueGame = new SoloQueueGame(this, gameJSON);
                 this.activeSoloQueueGames.add(newSoloQueueGame);
+                // idsToScan.remove(0);
                 updateIDsToScan(idsToScan, newSoloQueueGame.getParticipants());
             } else {
                 // LOG GameJSON null for idsToScan.get(i)
@@ -110,10 +111,11 @@ class League {
                     System.out.print(" ");
                 }
             }
+            System.out.print("| " + (int) (percentComplete * 100) + "%\r");
 
         }
 
-        System.out.println("\n------------Finished loading Solo Queue Games------------");
+        System.out.println("\n------------Finished loading Solo Queue Games------------\n");
         this.mergeSoloQueueGames();
     }
 

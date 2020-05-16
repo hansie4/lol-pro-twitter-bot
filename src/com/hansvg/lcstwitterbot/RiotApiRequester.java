@@ -1,6 +1,8 @@
 package com.hansvg.lcstwitterbot;
 
+import java.io.IOException;
 import java.net.URI;
+import java.net.URISyntaxException;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
@@ -15,14 +17,14 @@ class RiotApiRequester {
     private double requestsASecond;
     private HttpClient httpClient;
 
-    RiotApiRequester(String ApiKey, String region, double requestsASecond) {
+    protected RiotApiRequester(String ApiKey, String region, double requestsASecond) {
         this.ApiKey = ApiKey;
         this.region = region;
         this.requestsASecond = requestsASecond;
         httpClient = HttpClient.newHttpClient();
     }
 
-    JSONObject getSummoner(String summonerName) {
+    protected JSONObject getSummoner(String summonerName) {
         try {
             URI requestURI = new URI("https://" + region + ".api.riotgames.com/lol/summoner/v4/summoners/by-name/"
                     + summonerNameNoSpaces(summonerName) + "?api_key=" + ApiKey);
@@ -72,16 +74,20 @@ class RiotApiRequester {
                     // System.out.println("504: Gateway Timeout from: getSummonerID(" + summonerName
                     // + ")");
                 }
-
                 return null;
             }
+        } catch (URISyntaxException exception) {
+            return null;
+        } catch (IOException exception) {
+            return null;
+        } catch (InterruptedException exception) {
+            return null;
         } catch (Exception exception) {
-            System.out.println("Exception: " + exception.getLocalizedMessage());
             return null;
         }
     }
 
-    JSONObject getLiveGameInfo(String summonerID) {
+    protected JSONObject getLiveGameInfo(String summonerID) {
         try {
             if (summonerID != null) {
                 URI requestURI = new URI(
@@ -133,14 +139,18 @@ class RiotApiRequester {
                         // System.out.println("504: Gateway Timeout from: getLiveGameInfo(" + summonerID
                         // + ")");
                     }
-
                     return null;
                 }
             } else {
                 return null;
             }
+        } catch (URISyntaxException exception) {
+            return null;
+        } catch (IOException exception) {
+            return null;
+        } catch (InterruptedException exception) {
+            return null;
         } catch (Exception exception) {
-            System.out.println("Exception: " + exception.getLocalizedMessage());
             return null;
         }
     }

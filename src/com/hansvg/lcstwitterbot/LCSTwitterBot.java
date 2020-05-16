@@ -32,19 +32,27 @@ public class LCSTwitterBot {
 
     public void start() throws IOException {
         this.twitterBotLogger.open();
-        this.twitterBotLogger.log("START", "LOL PRO TWITTER BOT START");
+        // LOG
+        this.twitterBotLogger.log("LCSTwitterBot", "LOL PRO TWITTER BOT START");
 
-        league.loadPlayers(this.playerRosterFile);
-        league.loadPlayerSummonerIds(riotApiRequester);
-        league.loadSoloQueueGames(riotApiRequester);
+        if (riotApiRequester.isWorking()) {
+            // LOG
+            this.twitterBotLogger.log("LCSTwitterBot", "RiotApiRequester tested and working");
 
-        System.out.println("Unique Solo Queue Games Found: " + league.getActiveSoloQueueGames().size());
+            league.loadPlayers(this.playerRosterFile);
+            league.loadPlayerSummonerIds(riotApiRequester);
+            league.loadSoloQueueGames(riotApiRequester);
 
-        for (SoloQueueGame g : league.getActiveSoloQueueGames()) {
-            g.printGameInfo();
+            System.out.println("Unique Solo Queue Games Found: " + league.getActiveSoloQueueGames().size());
+
+            for (SoloQueueGame g : league.getActiveSoloQueueGames()) {
+                g.printGameInfo();
+            }
+        } else {
+            this.twitterBotLogger.log("LCSTwitterBot", "RiotApiRequester not working");
         }
-
-        this.twitterBotLogger.log("END", "LOL PRO TWITTER BOT END");
+        // LOG
+        this.twitterBotLogger.log("LCSTwitterBot", "LOL PRO TWITTER BOT END");
         this.twitterBotLogger.close();
     }
 

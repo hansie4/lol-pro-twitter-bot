@@ -29,6 +29,8 @@ class League {
     }
 
     protected void loadPlayers(File playerRosterFile) throws FileNotFoundException {
+        // LOG
+        this.twitterBotLogger.log("League", "Beginning to load players");
         Scanner playerRosterScanner = new Scanner(playerRosterFile);
 
         if (playerRosterScanner.hasNextLine()) {
@@ -46,11 +48,14 @@ class League {
         }
         playerRosterScanner.close();
         // LOG
-        this.twitterBotLogger.log("TASK",
+        this.twitterBotLogger.log("League",
                 (players.size() + " players loaded from \"" + playerRosterFile.toPath() + "\""));
+        this.twitterBotLogger.log("League", "Finished loading players");
     }
 
     protected void loadPlayerSummonerIds(RiotApiRequester riotApiRequester) {
+        // LOG
+        this.twitterBotLogger.log("League", "Beginning to load summoner IDs");
         System.out.println("-------------Beginning to load summoner IDs--------------");
         double percentComplete = 0.0;
         for (int i = 0; i < this.players.size(); i++) {
@@ -65,7 +70,7 @@ class League {
                     currentPlayer.getSummonerIds()[j] = summonerJSON.getString("id");
                 } else {
                     // LOG
-                    this.twitterBotLogger.log("ERROR",
+                    this.twitterBotLogger.log("League ERROR",
                             "Summoner ID for " + summonerNames[j] + " could not be retrieved from Riot Games API");
                     currentPlayer.getSummonerIds()[j] = null;
                 }
@@ -86,10 +91,12 @@ class League {
         }
         System.out.println("\n-------------Finished loading summoner IDs---------------\n");
         // LOG
-        this.twitterBotLogger.log("TASK", "Summoner Ids Loaded");
+        this.twitterBotLogger.log("League", "Finished loading summoner IDs");
     }
 
     protected void loadSoloQueueGames(RiotApiRequester riotApiRequester) {
+        // LOG
+        this.twitterBotLogger.log("League", "Beginning to load Active Solo Queue Games");
         System.out.println("-----------Beginning to load Solo Queue Games------------");
 
         double percentComplete = 0.0;
@@ -104,7 +111,6 @@ class League {
                 this.activeSoloQueueGames.add(newSoloQueueGame);
                 updateIDsToScan(idsToScan, newSoloQueueGame.getParticipants());
             } else {
-                // LOG GameJSON null for idsToScan.get(i)
                 idsToScan.remove(0);
             }
 
@@ -126,7 +132,7 @@ class League {
         System.out.println("\n------------Finished loading Solo Queue Games------------\n");
         this.mergeSoloQueueGames();
         // LOG
-        this.twitterBotLogger.log("TASK", "Active Solo Queue Games Loaded");
+        this.twitterBotLogger.log("League", "Finished loading Active Solo Queue Games");
     }
 
     private void mergeSoloQueueGames() {
@@ -141,6 +147,10 @@ class League {
                 uniqueGames.add(soloQueueGame);
             }
         }
+
+        // LOG
+        this.twitterBotLogger.log("League", "Merged " + activeSoloQueueGames.size() + " active solo queue games to "
+                + uniqueGames.size() + " unique games");
 
         this.activeSoloQueueGames = uniqueGames;
     }

@@ -27,6 +27,29 @@ class RiotApiRequester {
         this.twitterBotLogger = twitterBotLogger;
     }
 
+    protected boolean isWorking() {
+        try {
+
+            URI requestURI = new URI("https://" + region + ".api.riotgames.com/lol/summoner/v4/summoners/by-name/"
+                    + summonerNameNoSpaces("Hansie") + "?api_key=" + ApiKey);
+
+            HttpRequest request = HttpRequest.newBuilder().uri(requestURI).build();
+
+            HttpResponse<String> response = httpClient.send(request, BodyHandlers.ofString());
+
+            Thread.sleep((long) (requestsASecond * 1000));
+
+            if (response.statusCode() == 200) {
+                return true;
+            } else {
+                return false;
+            }
+
+        } catch (Exception e) {
+            return false;
+        }
+    }
+
     protected JSONObject getSummoner(String summonerName) {
         try {
             URI requestURI = new URI("https://" + region + ".api.riotgames.com/lol/summoner/v4/summoners/by-name/"
@@ -75,22 +98,16 @@ class RiotApiRequester {
                     // LOG
                     this.twitterBotLogger.log("500: INTERNAL SERVER ERROR",
                             "From Riot Games API for requesting Summoner Name: " + summonerName);
-                } else if (response.statusCode() == 502) {
-                    // LOG
-                    this.twitterBotLogger.log("502: BAD GATEWAY",
-                            "From Riot Games API for requesting Summoner Name: " + summonerName);
                 } else if (response.statusCode() == 503) {
                     // LOG
                     this.twitterBotLogger.log("503: SERVICE UNAVAILABLE",
                             "From Riot Games API for requesting Summoner Name: " + summonerName);
-                } else if (response.statusCode() == 504) {
-                    // LOG
-                    this.twitterBotLogger.log("504: GATEWAY TIMEOUT",
-                            "From Riot Games API for requesting Summoner Name: " + summonerName);
                 }
                 return null;
             }
-        } catch (URISyntaxException exception) {
+        } catch (
+
+        URISyntaxException exception) {
             return null;
         } catch (IOException exception) {
             return null;
@@ -151,17 +168,9 @@ class RiotApiRequester {
                         // LOG
                         this.twitterBotLogger.log("500: INTERNAL SERVER ERROR",
                                 "From Riot Games API for requesting live game for: " + summonerID);
-                    } else if (response.statusCode() == 502) {
-                        // LOG
-                        this.twitterBotLogger.log("502: BAD GATEWAY",
-                                "From Riot Games API for requesting live game for: " + summonerID);
                     } else if (response.statusCode() == 503) {
                         // LOG
                         this.twitterBotLogger.log("503: SERVICE UNAVAILABLE",
-                                "From Riot Games API for requesting live game for: " + summonerID);
-                    } else if (response.statusCode() == 504) {
-                        // LOG
-                        this.twitterBotLogger.log("504: GATEWAY TIMEOUT",
                                 "From Riot Games API for requesting live game for: " + summonerID);
                     }
                     return null;

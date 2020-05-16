@@ -12,10 +12,12 @@ class League {
 
     private ArrayList<Player> players;
     private ArrayList<SoloQueueGame> activeSoloQueueGames;
+    private TwitterBotLogger twitterBotLogger;
 
-    League() {
+    League(TwitterBotLogger twitterBotLogger) {
         this.players = new ArrayList<>();
         this.activeSoloQueueGames = new ArrayList<>();
+        this.twitterBotLogger = twitterBotLogger;
     }
 
     protected ArrayList<Player> getPlayers() {
@@ -43,6 +45,9 @@ class League {
             }
         }
         playerRosterScanner.close();
+        // LOG
+        this.twitterBotLogger.log("TASK",
+                (players.size() + " players loaded from \"" + playerRosterFile.toPath() + "\""));
     }
 
     protected void loadPlayerSummonerIds(RiotApiRequester riotApiRequester) {
@@ -59,7 +64,9 @@ class League {
                 if (summonerJSON != null) {
                     currentPlayer.getSummonerIds()[j] = summonerJSON.getString("id");
                 } else {
-                    // LOG SummonerName is invalid for currentPlayer.getSummonerNames()[j]
+                    // LOG
+                    this.twitterBotLogger.log("ERROR",
+                            "Summoner ID for " + summonerNames[j] + " could not be retrieved from Riot Games API");
                     currentPlayer.getSummonerIds()[j] = null;
                 }
             }
@@ -78,6 +85,8 @@ class League {
 
         }
         System.out.println("\n-------------Finished loading summoner IDs---------------\n");
+        // LOG
+        this.twitterBotLogger.log("TASK", "Summoner Ids Loaded");
     }
 
     protected void loadSoloQueueGames(RiotApiRequester riotApiRequester) {
@@ -93,7 +102,6 @@ class League {
             if (gameJSON != null) {
                 SoloQueueGame newSoloQueueGame = new SoloQueueGame(this, gameJSON);
                 this.activeSoloQueueGames.add(newSoloQueueGame);
-                // idsToScan.remove(0);
                 updateIDsToScan(idsToScan, newSoloQueueGame.getParticipants());
             } else {
                 // LOG GameJSON null for idsToScan.get(i)
@@ -117,6 +125,8 @@ class League {
 
         System.out.println("\n------------Finished loading Solo Queue Games------------\n");
         this.mergeSoloQueueGames();
+        // LOG
+        this.twitterBotLogger.log("TASK", "Active Solo Queue Games Loaded");
     }
 
     private void mergeSoloQueueGames() {

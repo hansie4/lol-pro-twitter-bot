@@ -2,6 +2,7 @@ package com.hansvg.lcstwitterbot;
 
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.util.Scanner;
 
 import org.json.JSONException;
@@ -10,23 +11,28 @@ import org.json.JSONObject;
 public class LCSTwitterBot {
 
     private File playerRosterFile;
-    private File riotApiInfoFile;
-
     private League league;
 
+    private File riotApiInfoFile;
     private JSONObject riotApiInfoJSON;
     private RiotApiRequester riotApiRequester;
 
-    public LCSTwitterBot(File playerRosterFile, File riotApiInfoFile) throws JSONException, FileNotFoundException {
+    private TwitterBotLogger twitterBotLogger;
+
+    public LCSTwitterBot(File playerRosterFile, File riotApiInfoFile, File twitterbotLogFile)
+            throws JSONException, IOException {
         this.playerRosterFile = playerRosterFile;
         this.riotApiInfoFile = riotApiInfoFile;
-        this.league = new League();
+        this.twitterBotLogger = new TwitterBotLogger(twitterbotLogFile);
+        this.league = new League(twitterBotLogger);
         this.riotApiInfoJSON = new JSONObject(readInRiotApiFile());
         this.riotApiRequester = new RiotApiRequester(getRiotApiKey(riotApiInfoJSON), getRiotRegion(riotApiInfoJSON),
-                getRiotRequestsPerSecond(riotApiInfoJSON));
+                getRiotRequestsPerSecond(riotApiInfoJSON), twitterBotLogger);
     }
 
-    public void start() throws FileNotFoundException {
+    public void start() throws IOException {
+        this.twitterBotLogger.open();
+        this.twitterBotLogger.log("START", "LOL PRO TWITTER BOT START");
 
         league.loadPlayers(this.playerRosterFile);
         league.loadPlayerSummonerIds(riotApiRequester);
@@ -37,6 +43,9 @@ public class LCSTwitterBot {
         for (SoloQueueGame g : league.getActiveSoloQueueGames()) {
             g.printGameInfo();
         }
+
+        this.twitterBotLogger.log("END", "LOL PRO TWITTER BOT END");
+        this.twitterBotLogger.close();
     }
 
     private String readInRiotApiFile() throws FileNotFoundException {

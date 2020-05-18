@@ -33,11 +33,11 @@ public class LCSTwitterBot {
     public void start() throws IOException {
         this.twitterBotLogger.open();
         // LOG
-        this.twitterBotLogger.log("LCSTwitterBot", "LOL PRO TWITTER BOT START");
+        this.twitterBotLogger.log("LCSTWITTERBOT", "LOL PRO TWITTER BOT START");
 
         if (riotApiRequester.isWorking()) {
             // LOG
-            this.twitterBotLogger.log("LCSTwitterBot", "RiotApiRequester tested and working");
+            this.twitterBotLogger.log("LCSTWITTERBOT", "RiotApiRequester tested and working");
 
             league.loadPlayers(this.playerRosterFile);
             league.loadPlayerSummonerIds(riotApiRequester);
@@ -49,10 +49,10 @@ public class LCSTwitterBot {
                 g.printGameInfo();
             }
         } else {
-            this.twitterBotLogger.log("LCSTwitterBot", "RiotApiRequester not working");
+            this.twitterBotLogger.log("LCSTWITTERBOT", "RiotApiRequester not working");
         }
         // LOG
-        this.twitterBotLogger.log("LCSTwitterBot", "LOL PRO TWITTER BOT END");
+        this.twitterBotLogger.log("LCSTWITTERBOT", "LOL PRO TWITTER BOT END");
         this.twitterBotLogger.close();
     }
 

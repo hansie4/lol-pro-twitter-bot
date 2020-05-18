@@ -68,39 +68,39 @@ class RiotApiRequester {
             } else {
                 if (response.statusCode() == 400) {
                     // LOG
-                    this.twitterBotLogger.log("400: BAD REQUEST",
+                    this.twitterBotLogger.log("RIOTAPIREQUESTER 400: BAD REQUEST",
                             "From Riot Games API for requesting Summoner Name: " + summonerName);
                 } else if (response.statusCode() == 401) {
                     // LOG
-                    this.twitterBotLogger.log("401: UNAUTHERIZED",
+                    this.twitterBotLogger.log("RIOTAPIREQUESTER 401: UNAUTHERIZED",
                             "From Riot Games API for requesting Summoner Name: " + summonerName);
                 } else if (response.statusCode() == 403) {
                     // LOG
-                    this.twitterBotLogger.log("403: FORBIDDEN",
+                    this.twitterBotLogger.log("RIOTAPIREQUESTER 403: FORBIDDEN",
                             "From Riot Games API for requesting Summoner Name: " + summonerName);
                 } else if (response.statusCode() == 404) {
                     // LOG
-                    this.twitterBotLogger.log("404: DATA NOT FOUND",
+                    this.twitterBotLogger.log("RIOTAPIREQUESTER 404: DATA NOT FOUND",
                             "From Riot Games API for requesting Summoner Name: " + summonerName);
                 } else if (response.statusCode() == 405) {
                     // LOG
-                    this.twitterBotLogger.log("405: METHOD NOT ALLOWED",
+                    this.twitterBotLogger.log("RIOTAPIREQUESTER 405: METHOD NOT ALLOWED",
                             "From Riot Games API for requesting Summoner Name: " + summonerName);
                 } else if (response.statusCode() == 415) {
                     // LOG
-                    this.twitterBotLogger.log("415: UNSUPPORTED MEDIA TYPE",
+                    this.twitterBotLogger.log("RIOTAPIREQUESTER 415: UNSUPPORTED MEDIA TYPE",
                             "From Riot Games API for requesting Summoner Name: " + summonerName);
                 } else if (response.statusCode() == 429) {
                     // LOG
-                    this.twitterBotLogger.log("429: RATE LIMIT EXCEEDED",
+                    this.twitterBotLogger.log("RIOTAPIREQUESTER 429: RATE LIMIT EXCEEDED",
                             "From Riot Games API for requesting Summoner Name: " + summonerName);
                 } else if (response.statusCode() == 500) {
                     // LOG
-                    this.twitterBotLogger.log("500: INTERNAL SERVER ERROR",
+                    this.twitterBotLogger.log("RIOTAPIREQUESTER 500: INTERNAL SERVER ERROR",
                             "From Riot Games API for requesting Summoner Name: " + summonerName);
                 } else if (response.statusCode() == 503) {
                     // LOG
-                    this.twitterBotLogger.log("503: SERVICE UNAVAILABLE",
+                    this.twitterBotLogger.log("RIOTAPIREQUESTER 503: SERVICE UNAVAILABLE",
                             "From Riot Games API for requesting Summoner Name: " + summonerName);
                 }
                 return null;
@@ -138,39 +138,40 @@ class RiotApiRequester {
                 } else {
                     if (response.statusCode() == 400) {
                         // LOG
-                        this.twitterBotLogger.log("400: BAD REQUEST",
+                        this.twitterBotLogger.log("RIOTAPIREQUESTER 400: BAD REQUEST",
                                 "From Riot Games API for requesting live game for: " + summonerID);
                     } else if (response.statusCode() == 401) {
                         // LOG
-                        this.twitterBotLogger.log("401: UNAUTHERIZED",
+                        this.twitterBotLogger.log("RIOTAPIREQUESTER 401: UNAUTHERIZED",
                                 "From Riot Games API for requesting live game for: " + summonerID);
                     } else if (response.statusCode() == 403) {
                         // LOG
-                        this.twitterBotLogger.log("403: FORBIDDEN",
+                        this.twitterBotLogger.log("RIOTAPIREQUESTER 403: FORBIDDEN",
                                 "From Riot Games API for requesting live game for: " + summonerID);
                     } else if (response.statusCode() == 404) {
                         // LOG
-                        // this.twitterBotLogger.log("404: DATA NOT FOUND", "From Riot Games API for
+                        // this.twitterBotLogger.log("RIOTAPIREQUESTER 404: DATA NOT FOUND", "From Riot
+                        // Games API for
                         // requesting live game for: " + summonerID);
                     } else if (response.statusCode() == 405) {
                         // LOG
-                        this.twitterBotLogger.log("405: METHOD NOT ALLOWED",
+                        this.twitterBotLogger.log("RIOTAPIREQUESTER 405: METHOD NOT ALLOWED",
                                 "From Riot Games API for requesting live game for: " + summonerID);
                     } else if (response.statusCode() == 415) {
                         // LOG
-                        this.twitterBotLogger.log("415: UNSUPPORTED MEDIA TYPE",
+                        this.twitterBotLogger.log("RIOTAPIREQUESTER 415: UNSUPPORTED MEDIA TYPE",
                                 "From Riot Games API for requesting live game for: " + summonerID);
                     } else if (response.statusCode() == 429) {
                         // LOG
-                        this.twitterBotLogger.log("429: RATE LIMIT EXCEEDED",
+                        this.twitterBotLogger.log("RIOTAPIREQUESTER 429: RATE LIMIT EXCEEDED",
                                 "From Riot Games API for requesting live game for: " + summonerID);
                     } else if (response.statusCode() == 500) {
                         // LOG
-                        this.twitterBotLogger.log("500: INTERNAL SERVER ERROR",
+                        this.twitterBotLogger.log("RIOTAPIREQUESTER 500: INTERNAL SERVER ERROR",
                                 "From Riot Games API for requesting live game for: " + summonerID);
                     } else if (response.statusCode() == 503) {
                         // LOG
-                        this.twitterBotLogger.log("503: SERVICE UNAVAILABLE",
+                        this.twitterBotLogger.log("RIOTAPIREQUESTER 503: SERVICE UNAVAILABLE",
                                 "From Riot Games API for requesting live game for: " + summonerID);
                     }
                     return null;

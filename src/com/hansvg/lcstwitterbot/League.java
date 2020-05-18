@@ -30,7 +30,7 @@ class League {
 
     protected void loadPlayers(File playerRosterFile) throws FileNotFoundException {
         // LOG
-        this.twitterBotLogger.log("League", "Beginning to load players");
+        this.twitterBotLogger.log("LEAGUE", "Beginning to load players");
         Scanner playerRosterScanner = new Scanner(playerRosterFile);
 
         if (playerRosterScanner.hasNextLine()) {
@@ -48,14 +48,14 @@ class League {
         }
         playerRosterScanner.close();
         // LOG
-        this.twitterBotLogger.log("League",
+        this.twitterBotLogger.log("LEAGUE",
                 (players.size() + " players loaded from \"" + playerRosterFile.toPath() + "\""));
-        this.twitterBotLogger.log("League", "Finished loading players");
+        this.twitterBotLogger.log("LEAGUE", "Finished loading players");
     }
 
     protected void loadPlayerSummonerIds(RiotApiRequester riotApiRequester) {
         // LOG
-        this.twitterBotLogger.log("League", "Beginning to load summoner IDs");
+        this.twitterBotLogger.log("LEAGUE", "Beginning to load summoner IDs");
         System.out.println("-------------Beginning to load summoner IDs--------------");
         double percentComplete = 0.0;
         for (int i = 0; i < this.players.size(); i++) {
@@ -70,7 +70,7 @@ class League {
                     currentPlayer.getSummonerIds()[j] = summonerJSON.getString("id");
                 } else {
                     // LOG
-                    this.twitterBotLogger.log("League ERROR",
+                    this.twitterBotLogger.log("LEAGUE ERROR",
                             "Summoner ID for " + summonerNames[j] + " could not be retrieved from Riot Games API");
                     currentPlayer.getSummonerIds()[j] = null;
                 }
@@ -91,12 +91,12 @@ class League {
         }
         System.out.println("\n-------------Finished loading summoner IDs---------------\n");
         // LOG
-        this.twitterBotLogger.log("League", "Finished loading summoner IDs");
+        this.twitterBotLogger.log("LEAGUE", "Finished loading summoner IDs");
     }
 
     protected void loadSoloQueueGames(RiotApiRequester riotApiRequester) {
         // LOG
-        this.twitterBotLogger.log("League", "Beginning to load Active Solo Queue Games");
+        this.twitterBotLogger.log("LEAGUE", "Beginning to load Active Solo Queue Games");
         System.out.println("-----------Beginning to load Solo Queue Games------------");
 
         double percentComplete = 0.0;
@@ -129,30 +129,12 @@ class League {
 
         }
 
-        System.out.println("\n------------Finished loading Solo Queue Games------------\n");
-        this.mergeSoloQueueGames();
-        // LOG
-        this.twitterBotLogger.log("League", "Finished loading Active Solo Queue Games");
-    }
-
-    private void mergeSoloQueueGames() {
         this.activeSoloQueueGames.removeAll(Collections.singleton(null));
 
-        ArrayList<Long> uniqueGameIDs = new ArrayList<>();
-        ArrayList<SoloQueueGame> uniqueGames = new ArrayList<>();
-
-        for (SoloQueueGame soloQueueGame : activeSoloQueueGames) {
-            if (!uniqueGameIDs.contains(soloQueueGame.getGameId())) {
-                uniqueGameIDs.add(soloQueueGame.getGameId());
-                uniqueGames.add(soloQueueGame);
-            }
-        }
-
+        System.out.println("\n------------Finished loading Solo Queue Games------------\n");
         // LOG
-        this.twitterBotLogger.log("League", "Merged " + activeSoloQueueGames.size() + " active solo queue games to "
-                + uniqueGames.size() + " unique games");
-
-        this.activeSoloQueueGames = uniqueGames;
+        this.twitterBotLogger.log("LEAGUE", "Found " + this.activeSoloQueueGames.size() + " active solo queue games");
+        this.twitterBotLogger.log("LEAGUE", "Finished loading Active Solo Queue Games");
     }
 
     protected Player getPlayerFromSummonerName(String summonerName) {

@@ -17,7 +17,7 @@ class SoloQueueGame {
     private Long gameQueueConfigId;
     private ArrayList<String[]> participants;
 
-    protected SoloQueueGame(League league, JSONObject gameJSON) {
+    protected SoloQueueGame(JSONObject gameJSON, League league) {
         this.league = league;
         this.gameId = gameJSON.getLong("gameId");
         this.gameType = gameJSON.getString("gameType");

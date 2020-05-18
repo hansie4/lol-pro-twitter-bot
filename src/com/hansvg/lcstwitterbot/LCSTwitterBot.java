@@ -27,32 +27,44 @@ public class LCSTwitterBot {
         this.league = new League(twitterBotLogger);
         this.riotApiInfoJSON = new JSONObject(readInRiotApiFile());
         this.riotApiRequester = new RiotApiRequester(getRiotApiKey(riotApiInfoJSON), getRiotRegion(riotApiInfoJSON),
-                getRiotRequestsPerSecond(riotApiInfoJSON), twitterBotLogger);
+                getRiotRequestRate(riotApiInfoJSON), twitterBotLogger);
+        System.out.println("LCSTwitterBot Created");
     }
 
     public void start() throws IOException {
+
         this.twitterBotLogger.open();
-        // LOG
-        this.twitterBotLogger.log("LCSTWITTERBOT", "LOL PRO TWITTER BOT START");
 
-        if (riotApiRequester.isWorking()) {
-            // LOG
-            this.twitterBotLogger.log("LCSTWITTERBOT", "RiotApiRequester tested and working");
+        boolean runningFlag = true;
 
-            league.loadPlayers(this.playerRosterFile);
-            league.loadPlayerSummonerIds(riotApiRequester);
-            league.loadSoloQueueGames(riotApiRequester);
-
-            System.out.println("Unique Solo Queue Games Found: " + league.getActiveSoloQueueGames().size());
-
-            for (SoloQueueGame g : league.getActiveSoloQueueGames()) {
-                g.printGameInfo();
+        if (this.riotApiRequester.isWorking()) {
+            System.out.println("RiotApiRequester Working");
+            if (this.league.loadPlayers(this.playerRosterFile)) {
+                System.out.println("Successfully Loaded Players");
+                if (this.league.loadPlayerSummonerIds(this.riotApiRequester)) {
+                    System.out.println("Successfully Summoner Ids");
+                } else {
+                    System.out.println("Unsuccessfully Summoner Ids");
+                    runningFlag = false;
+                }
+            } else {
+                System.out.println("Unsuccessfully Loaded Players");
+                runningFlag = false;
             }
         } else {
-            this.twitterBotLogger.log("LCSTWITTERBOT", "RiotApiRequester not working");
+            System.out.println("RiotApiRequester Not Working");
+            runningFlag = false;
         }
-        // LOG
-        this.twitterBotLogger.log("LCSTWITTERBOT", "LOL PRO TWITTER BOT END");
+
+        if (runningFlag) {
+            this.league.loadActiveSoloQueueGames(riotApiRequester);
+        }
+
+        System.out.println("Found " + this.league.getActiveSoloQueueGames().size() + " active solo queue games.");
+        for (SoloQueueGame game : this.league.getActiveSoloQueueGames()) {
+            game.printGameInfo();
+        }
+
         this.twitterBotLogger.close();
     }
 
@@ -76,8 +88,8 @@ public class LCSTwitterBot {
         return riotJSON.get("region").toString();
     }
 
-    private static double getRiotRequestsPerSecond(JSONObject riotJSON) {
-        return riotJSON.getDouble("requestsPerSecond");
+    private static double getRiotRequestRate(JSONObject riotJSON) {
+        return riotJSON.getDouble("requestRate");
     }
 
 }

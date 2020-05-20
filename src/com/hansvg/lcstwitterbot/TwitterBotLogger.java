@@ -19,7 +19,7 @@ class TwitterBotLogger extends FileWriter {
     }
 
     protected void log(String logType, String stringToLog) {
-        this.printWriter.printf("%s | %s | %s\n", OffsetDateTime.now().toString(), logType, stringToLog);
+        this.printWriter.printf("%-40s | %s | %s\n", OffsetDateTime.now().toString(), logType, stringToLog);
     }
 
 }

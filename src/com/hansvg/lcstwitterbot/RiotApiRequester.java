@@ -15,14 +15,12 @@ class RiotApiRequester {
 
     private String apiKey;
     private String region;
-    private double requestRate;
     private HttpClient httpClient;
     private TwitterBotLogger twitterBotLogger;
 
-    protected RiotApiRequester(String apiKey, String region, double requestRate, TwitterBotLogger twitterBotLogger) {
+    protected RiotApiRequester(String apiKey, String region, TwitterBotLogger twitterBotLogger) {
         this.apiKey = apiKey;
         this.region = region;
-        this.requestRate = requestRate;
         httpClient = HttpClient.newHttpClient();
         this.twitterBotLogger = twitterBotLogger;
     }
@@ -37,32 +35,19 @@ class RiotApiRequester {
 
             HttpResponse<String> response = this.httpClient.send(request, BodyHandlers.ofString());
 
-            Thread.sleep((long) (requestRate * 1000));
-
-            if (response.statusCode() == 200 || response.statusCode() == 404) {
-                // LOG
-                this.twitterBotLogger.log("PROCESS", "RiotApiRequester tested and working");
+            if (response.statusCode() == 200 || response.statusCode() == 404 || response.statusCode() == 429) {
                 return true;
             } else {
-                // LOG
-                this.twitterBotLogger.log("PROCESS", "RiotApiRequester not working due to status code: "
-                        + response.statusCode() + " from Riot Games API");
                 return false;
             }
 
         } catch (URISyntaxException e) {
-            // LOG
-            this.twitterBotLogger.log("PROCESS", "RiotApiRequester not working due to URISyntaxException");
             e.printStackTrace();
             return false;
         } catch (InterruptedException e) {
-            // LOG
-            this.twitterBotLogger.log("PROCESS", "RiotApiRequester not working due to InterruptedException");
             e.printStackTrace();
             return false;
         } catch (IOException e) {
-            // LOG
-            this.twitterBotLogger.log("PROCESS", "RiotApiRequester not working due to IOException");
             e.printStackTrace();
             return false;
         }
@@ -88,27 +73,26 @@ class RiotApiRequester {
                 JSONObject responseBodyJSON = new JSONObject(response.body());
 
                 if (response.statusCode() == 200) {
-
                     String currentSummonerId = responseBodyJSON.getString("id");
-
                     currentPlayer.getSummonerIds()[currentSummonerIndex] = currentSummonerId;
 
                 } else if (response.statusCode() == 404) {
                     // summoner name does not exist
-                    // LOG
-                    this.twitterBotLogger.log("API REQUEST ERROR",
-                            "Could not find Summoner Id for Summoner Name: " + currentSummonerName);
                     currentPlayer.getSummonerIds()[currentSummonerIndex] = null;
+                    // LOG
+                    this.twitterBotLogger.log("", "Summoner Name \"" + currentSummonerName + "\" could not be found");
+                } else if (response.statusCode() == 429) {
+                    // rate limit reached
+                    currentSummonerIndex--;
+                    Thread.sleep(10000);
                 } else {
                     // error with getting information from api
-                    // LOG
-                    this.twitterBotLogger.log("API REQUEST ERROR",
-                            "Riot Games API returned status code: " + response.statusCode()
-                                    + " for request for Summoner Id from Summoner Name: " + currentSummonerName);
                     currentPlayer.getSummonerIds()[currentSummonerIndex] = null;
+                    // LOG
+                    this.twitterBotLogger.log("",
+                            "Error code " + response.statusCode() + " from riot api when trying to load summonerIds");
                 }
 
-                Thread.sleep((long) (requestRate * 1000));
             }
 
             // Loading bar
@@ -152,13 +136,15 @@ class RiotApiRequester {
             } else if (response.statusCode() == 404) {
                 // summoner id not in active game
                 summonerIds.remove(0);
+            } else if (response.statusCode() == 429) {
+                // rate limit reached
+                Thread.sleep(10000);
             } else {
                 // error with getting information from api
-                // LOG
-                this.twitterBotLogger.log("API REQUEST ERROR",
-                        "Riot Games API returned status code: " + response.statusCode()
-                                + " for request for Active Game from Summoner Id: " + summonerIds.get(0));
                 summonerIds.remove(0);
+                // LOG
+                this.twitterBotLogger.log("", "Error code " + response.statusCode()
+                        + " from riot api when trying to load active solo queue games");
             }
 
             // Loading bar
@@ -172,8 +158,6 @@ class RiotApiRequester {
                 }
             }
             System.out.print("| " + (int) (percentComplete * 100) + "%\r");
-
-            Thread.sleep((long) (requestRate * 1000));
         }
         System.out.println();
         return activeSoloQueueGames;

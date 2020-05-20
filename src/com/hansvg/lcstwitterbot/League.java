@@ -46,16 +46,12 @@ class League {
             }
             playerRosterScanner.close();
 
-            // LOG
-            this.twitterBotLogger.log("LOAD",
-                    this.players.size() + " players loaded from \"" + playerRosterFile + "\"");
-
             return true;
         } catch (FileNotFoundException e) {
-            // LOG
-            this.twitterBotLogger.log("LOAD", "Players could not be loaded from \"" + playerRosterFile + "\"");
-
             e.printStackTrace();
+            // LOG
+            this.twitterBotLogger.log("",
+                    "Error when loading in players from \"" + playerRosterFile + "\" " + e.getStackTrace());
             return false;
         }
 
@@ -67,15 +63,25 @@ class League {
             return true;
         } catch (URISyntaxException e) {
             e.printStackTrace();
+            // LOG
+            this.twitterBotLogger.log("",
+                    "URISyntaxException from riotApiRequester.loadSummonerIds() " + e.getStackTrace());
             return false;
         } catch (InterruptedException e) {
             e.printStackTrace();
+            // LOG
+            this.twitterBotLogger.log("",
+                    "InterruptedException from riotApiRequester.loadSummonerIds() " + e.getStackTrace());
             return false;
         } catch (IOException e) {
             e.printStackTrace();
+            // LOG
+            this.twitterBotLogger.log("", "IOException from riotApiRequester.loadSummonerIds() " + e.getStackTrace());
             return false;
         } catch (Exception e) {
             e.printStackTrace();
+            // LOG
+            this.twitterBotLogger.log("", "Exception from riotApiRequester.loadSummonerIds() " + e.getStackTrace());
             return false;
         }
     }
@@ -86,15 +92,27 @@ class League {
             return true;
         } catch (URISyntaxException e) {
             e.printStackTrace();
+            // LOG
+            this.twitterBotLogger.log("",
+                    "URISyntaxException from riotApiRequester.loadActiveSoloQueueGames() " + e.getStackTrace());
             return false;
         } catch (InterruptedException e) {
             e.printStackTrace();
+            // LOG
+            this.twitterBotLogger.log("",
+                    "InterruptedException from riotApiRequester.loadActiveSoloQueueGames() " + e.getStackTrace());
             return false;
         } catch (IOException e) {
             e.printStackTrace();
+            // LOG
+            this.twitterBotLogger.log("",
+                    "IOException from riotApiRequester.loadActiveSoloQueueGames() " + e.getStackTrace());
             return false;
         } catch (Exception e) {
             e.printStackTrace();
+            // LOG
+            this.twitterBotLogger.log("",
+                    "Exception from riotApiRequester.loadActiveSoloQueueGames() " + e.getStackTrace());
             return false;
         }
     }

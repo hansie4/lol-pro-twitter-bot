@@ -27,8 +27,11 @@ class SoloQueueGame {
         this.gameLength = gameJSON.getLong("gameLength");
         this.platformId = gameJSON.getString("platformId");
         this.gameMode = gameJSON.getString("gameMode");
-        this.gameQueueConfigId = gameJSON.getLong("gameQueueConfigId");
         this.participants = new ArrayList<>();
+
+        if (!this.gameType.equals("CUSTOM_GAME")) {
+            this.gameQueueConfigId = gameJSON.getLong("gameQueueConfigId");
+        }
 
         JSONArray gameParticipants = gameJSON.getJSONArray("participants");
 

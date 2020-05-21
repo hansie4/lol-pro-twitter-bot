@@ -11,14 +11,14 @@ import java.util.ArrayList;
 
 import org.json.JSONObject;
 
-class RiotApiRequester {
+class RiotApiHandler {
 
     private String apiKey;
     private String region;
     private HttpClient httpClient;
     private TwitterBotLogger twitterBotLogger;
 
-    protected RiotApiRequester(String apiKey, String region, TwitterBotLogger twitterBotLogger) {
+    protected RiotApiHandler(String apiKey, String region, TwitterBotLogger twitterBotLogger) {
         this.apiKey = apiKey;
         this.region = region;
         httpClient = HttpClient.newHttpClient();

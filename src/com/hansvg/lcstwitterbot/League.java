@@ -57,62 +57,64 @@ class League {
 
     }
 
-    protected boolean loadPlayerSummonerIds(RiotApiRequester riotApiRequester) {
+    protected boolean loadPlayerSummonerIds(RiotApiHandler riotApiHandler) {
         try {
-            riotApiRequester.loadSummonerIds(this.players);
+            riotApiHandler.loadSummonerIds(this.players);
             return true;
         } catch (URISyntaxException e) {
             e.printStackTrace();
             // LOG
             this.twitterBotLogger.log("",
-                    "URISyntaxException from riotApiRequester.loadSummonerIds() " + e.getStackTrace());
+                    "URISyntaxException from riotApiHandler.loadSummonerIds() " + e.getStackTrace().toString());
             return false;
         } catch (InterruptedException e) {
             e.printStackTrace();
             // LOG
             this.twitterBotLogger.log("",
-                    "InterruptedException from riotApiRequester.loadSummonerIds() " + e.getStackTrace());
+                    "InterruptedException from riotApiHandler.loadSummonerIds() " + e.getStackTrace().toString());
             return false;
         } catch (IOException e) {
             e.printStackTrace();
             // LOG
-            this.twitterBotLogger.log("", "IOException from riotApiRequester.loadSummonerIds() " + e.getStackTrace());
+            this.twitterBotLogger.log("",
+                    "IOException from riotApiHandler.loadSummonerIds() " + e.getStackTrace().toString());
             return false;
         } catch (Exception e) {
             e.printStackTrace();
             // LOG
-            this.twitterBotLogger.log("", "Exception from riotApiRequester.loadSummonerIds() " + e.getStackTrace());
+            this.twitterBotLogger.log("",
+                    "Exception from riotApiHandler.loadSummonerIds() " + e.getStackTrace().toString());
             return false;
         }
     }
 
-    protected boolean loadActiveSoloQueueGames(RiotApiRequester riotApiRequester) {
+    protected boolean loadActiveSoloQueueGames(RiotApiHandler riotApiHandler) {
         try {
-            this.activeSoloQueueGames = riotApiRequester.loadActiveSoloQueueGames(this.players, this);
+            this.activeSoloQueueGames = riotApiHandler.loadActiveSoloQueueGames(this.players, this);
             return true;
         } catch (URISyntaxException e) {
             e.printStackTrace();
             // LOG
-            this.twitterBotLogger.log("",
-                    "URISyntaxException from riotApiRequester.loadActiveSoloQueueGames() " + e.getStackTrace());
+            this.twitterBotLogger.log("", "URISyntaxException from riotApiHandler.loadActiveSoloQueueGames() "
+                    + e.getStackTrace().toString());
             return false;
         } catch (InterruptedException e) {
             e.printStackTrace();
             // LOG
-            this.twitterBotLogger.log("",
-                    "InterruptedException from riotApiRequester.loadActiveSoloQueueGames() " + e.getStackTrace());
+            this.twitterBotLogger.log("", "InterruptedException from riotApiHandler.loadActiveSoloQueueGames() "
+                    + e.getStackTrace().toString());
             return false;
         } catch (IOException e) {
             e.printStackTrace();
             // LOG
             this.twitterBotLogger.log("",
-                    "IOException from riotApiRequester.loadActiveSoloQueueGames() " + e.getStackTrace());
+                    "IOException from riotApiHandler.loadActiveSoloQueueGames() " + e.getStackTrace().toString());
             return false;
         } catch (Exception e) {
             e.printStackTrace();
             // LOG
             this.twitterBotLogger.log("",
-                    "Exception from riotApiRequester.loadActiveSoloQueueGames() " + e.getStackTrace());
+                    "Exception from riotApiHandler.loadActiveSoloQueueGames() " + e.getStackTrace().toString());
             return false;
         }
     }

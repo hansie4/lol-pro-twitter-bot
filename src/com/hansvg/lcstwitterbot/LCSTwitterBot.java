@@ -15,7 +15,7 @@ public class LCSTwitterBot {
 
     private File riotApiInfoFile;
     private JSONObject riotApiInfoJSON;
-    private RiotApiRequester riotApiRequester;
+    private RiotApiHandler riotApiHandler;
 
     private TwitterBotLogger twitterBotLogger;
 
@@ -26,7 +26,7 @@ public class LCSTwitterBot {
         this.twitterBotLogger = new TwitterBotLogger(twitterbotLogFile);
         this.league = new League(twitterBotLogger);
         this.riotApiInfoJSON = new JSONObject(readInRiotApiFile());
-        this.riotApiRequester = new RiotApiRequester(getRiotApiKey(riotApiInfoJSON), getRiotRegion(riotApiInfoJSON),
+        this.riotApiHandler = new RiotApiHandler(getRiotApiKey(riotApiInfoJSON), getRiotRegion(riotApiInfoJSON),
                 twitterBotLogger);
         System.out.println("LCSTwitterBot Created");
     }
@@ -37,7 +37,7 @@ public class LCSTwitterBot {
 
         boolean runningFlag = true;
 
-        if (this.riotApiRequester.isWorking()) {
+        if (this.riotApiHandler.isWorking()) {
             System.out.println("RiotApiRequester Tested and Working");
             // LOG
             this.twitterBotLogger.log("", "RiotApiRequester Tested and Working");
@@ -45,7 +45,7 @@ public class LCSTwitterBot {
                 System.out.println("Successfully Loaded Players");
                 // LOG
                 this.twitterBotLogger.log("", "Successfully Loaded Players");
-                if (this.league.loadPlayerSummonerIds(this.riotApiRequester)) {
+                if (this.league.loadPlayerSummonerIds(this.riotApiHandler)) {
                     System.out.println("Successfully Loaded Summoner Ids");
                     // LOG
                     this.twitterBotLogger.log("", "Successfully Loaded Summoner Ids");
@@ -69,7 +69,7 @@ public class LCSTwitterBot {
         }
 
         if (runningFlag) {
-            this.league.loadActiveSoloQueueGames(riotApiRequester);
+            this.league.loadActiveSoloQueueGames(this.riotApiHandler);
 
             System.out.println("Found " + this.league.getActiveSoloQueueGames().size() + " active solo queue game(s).");
             for (SoloQueueGame game : this.league.getActiveSoloQueueGames()) {

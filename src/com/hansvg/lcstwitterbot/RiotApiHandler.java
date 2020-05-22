@@ -1,3 +1,9 @@
+/**
+ * The RiotApiHandler Class uses java's HttpClient to interact with Riot Game's API to get information for League of Legends Players.
+ * 
+ * @author Hans Von Gruenigen
+ * @version 1.0
+ */
 package com.hansvg.lcstwitterbot;
 
 import java.io.IOException;
@@ -16,15 +22,28 @@ class RiotApiHandler {
     private String apiKey;
     private String region;
     private HttpClient httpClient;
-    private TwitterBotLogger twitterBotLogger;
+    private Logger logger;
 
-    protected RiotApiHandler(String apiKey, String region, TwitterBotLogger twitterBotLogger) {
+    /**
+     * RiotApiHandler Class Constructor.
+     * 
+     * @param apiKey The api key for the Riot Games API to authenticate this app
+     * @param region The region to make api calls to
+     * @param logger The Logger object to log the processes
+     */
+    protected RiotApiHandler(String apiKey, String region, Logger logger) {
         this.apiKey = apiKey;
         this.region = region;
         httpClient = HttpClient.newHttpClient();
-        this.twitterBotLogger = twitterBotLogger;
+        this.logger = logger;
     }
 
+    /**
+     * Checks if the RiotApiHandler is working by making a simple call to the Riot
+     * Games API and checking the responce.
+     * 
+     * @return True if the RiotApiHandler is found to be working and false otherwise
+     */
     protected boolean isWorking() {
         try {
 
@@ -53,6 +72,17 @@ class RiotApiHandler {
         }
     }
 
+    /**
+     * Gets account information for each player passed in's summoner names and
+     * updates the player's summoner ids.
+     * 
+     * @param players ArrayList of Players to load summoner ids
+     * @throws URISyntaxException   If there was a problem with the syntax of the
+     *                              uri
+     * @throws InterruptedException If there was an exception when using the
+     *                              Thread.sleep() function
+     * @throws IOException          If an input or output exception occurred
+     */
     protected void loadSummonerIds(ArrayList<Player> players)
             throws URISyntaxException, InterruptedException, IOException {
 
@@ -80,7 +110,8 @@ class RiotApiHandler {
                     // summoner name does not exist
                     currentPlayer.getSummonerIds()[currentSummonerIndex] = null;
                     // LOG
-                    this.twitterBotLogger.log("", "Summoner Name \"" + currentSummonerName + "\" could not be found");
+                    this.logger.log("",
+                            "Summoner Name \"" + currentSummonerName + "\" could not be found on " + region);
                 } else if (response.statusCode() == 429) {
                     // rate limit reached
                     currentSummonerIndex--;
@@ -89,7 +120,7 @@ class RiotApiHandler {
                     // error with getting information from api
                     currentPlayer.getSummonerIds()[currentSummonerIndex] = null;
                     // LOG
-                    this.twitterBotLogger.log("",
+                    this.logger.log("",
                             "Error code " + response.statusCode() + " from riot api when trying to load summonerIds");
                 }
 
@@ -111,11 +142,27 @@ class RiotApiHandler {
         System.out.println();
     }
 
+    /**
+     * Checks if each player's summoner id is in an active SoloQueueGame and if they
+     * are a SoloQueueGame object is created and added to the ArrayList that is
+     * returned.
+     * 
+     * @param players ArrayList of Players that you want to check if they are in a
+     *                SoloQueueGame
+     * @param league  The League the Players are a part of
+     * @return An ArrayList of SoloQueueGame objects representing current games the
+     *         Players are in
+     * @throws URISyntaxException   If there was a problem with the syntax of the
+     *                              uri
+     * @throws IOException          If an input or output exception occurred
+     * @throws InterruptedException If there was an exception when using the
+     *                              Thread.sleep() function
+     */
     protected ArrayList<SoloQueueGame> loadActiveSoloQueueGames(ArrayList<Player> players, League league)
             throws URISyntaxException, IOException, InterruptedException {
 
         ArrayList<SoloQueueGame> activeSoloQueueGames = new ArrayList<>();
-        ArrayList<String> summonerIds = this.getAllSummonerIds(players);
+        ArrayList<String> summonerIds = league.getAllSummonerIds();
         double percentComplete = 0;
         int initialAmountOfIds = summonerIds.size();
 
@@ -143,7 +190,7 @@ class RiotApiHandler {
                 // error with getting information from api
                 summonerIds.remove(0);
                 // LOG
-                this.twitterBotLogger.log("", "Error code " + response.statusCode()
+                this.logger.log("", "Error code " + response.statusCode()
                         + " from riot api when trying to load active solo queue games");
             }
 
@@ -163,10 +210,28 @@ class RiotApiHandler {
         return activeSoloQueueGames;
     }
 
+    /**
+     * Gets a version of the passed in string where spaces are replaced by %20 so
+     * they can be used in a URI.
+     * 
+     * @param summonerName String with spaces you want to replace
+     * @return A version of the passed in string where spaces are replaced with %20
+     */
     private String summonerNameNoSpaces(String summonerName) {
         return summonerName.replaceAll(" ", "%20");
     }
 
+    /**
+     * Helper method for the loadActiveSoloQueueGames() function that takes in an
+     * ArrayList of String Arrays that represent players in a game then removes
+     * those participant's ids from the other ArrayList passed in of Ids so that no
+     * more ids then needed are checked by the RiotApiHandler.
+     * 
+     * @param idList               List of summoner ids to be scanned
+     * @param participantsToRemove ArrayList of string arrays where index one
+     *                             contains summoner ids that are to be removed
+     *                             from @param idList
+     */
     private void updateIDsToScan(ArrayList<String> idList, ArrayList<String[]> participantsToRemove) {
 
         String[] idsToRemove = new String[participantsToRemove.size()];
@@ -180,18 +245,6 @@ class RiotApiHandler {
             }
         }
 
-    }
-
-    private ArrayList<String> getAllSummonerIds(ArrayList<Player> players) {
-        ArrayList<String> ids = new ArrayList<>();
-        for (Player player : players) {
-            for (String id : player.getSummonerIds()) {
-                if (id != null) {
-                    ids.add(id);
-                }
-            }
-        }
-        return ids;
     }
 
 }

@@ -1,3 +1,12 @@
+/**
+ * The LCSTwitterBot class is the main class for the LCSTwitterBot API.
+ * It creates the League, Logger, and Handlers as well as calls all the
+ * functions/methods to have the twitter bot run.
+ * 
+ * @author Hans Von Gruenigen
+ * @version 1.0
+ */
+
 package com.hansvg.lcstwitterbot;
 
 import java.io.File;
@@ -11,60 +20,76 @@ import org.json.JSONObject;
 public class LCSTwitterBot {
 
     private File playerRosterFile;
+    private File apiInfoFile;
+
     private League league;
 
-    private File riotApiInfoFile;
-    private JSONObject riotApiInfoJSON;
+    private JSONObject apiInfoJSON;
     private RiotApiHandler riotApiHandler;
 
-    private TwitterBotLogger twitterBotLogger;
+    private Logger logger;
 
-    public LCSTwitterBot(File playerRosterFile, File riotApiInfoFile, File twitterbotLogFile)
-            throws JSONException, IOException {
+    /**
+     * LCSTwitterBot Class Constructor.
+     * 
+     * @param playerRosterFile .csv file containg the players to track and their
+     *                         information
+     * @param apiInfoFile      .json file containing information needed to access
+     *                         the Riot Games, Twitter, and Twitch API's
+     * @param logFile          .log file the user wants to have the logs of the
+     *                         twitter bot written too
+     * @throws JSONException If an exception occured reading .json
+     * @throws IOException   If an input or output exception occurred
+     */
+    public LCSTwitterBot(File playerRosterFile, File apiInfoFile, File logFile) throws JSONException, IOException {
         this.playerRosterFile = playerRosterFile;
-        this.riotApiInfoFile = riotApiInfoFile;
-        this.twitterBotLogger = new TwitterBotLogger(twitterbotLogFile);
-        this.league = new League(twitterBotLogger);
-        this.riotApiInfoJSON = new JSONObject(readInRiotApiFile());
-        this.riotApiHandler = new RiotApiHandler(getRiotApiKey(riotApiInfoJSON), getRiotRegion(riotApiInfoJSON),
-                twitterBotLogger);
+        this.apiInfoFile = apiInfoFile;
+        this.logger = new Logger(logFile);
+        this.league = new League(this.logger);
+        readInApiFile();
+        this.riotApiHandler = new RiotApiHandler(getRiotApiKey(), getRiotRegion(), this.logger);
         System.out.println("LCSTwitterBot Created");
     }
 
+    /**
+     * The method used for having the twitter bot start running.
+     * 
+     * @throws IOException If an input or output exception occurred
+     */
     public void start() throws IOException {
 
-        this.twitterBotLogger.open();
+        this.logger.open();
 
         boolean runningFlag = true;
 
         if (this.riotApiHandler.isWorking()) {
             System.out.println("RiotApiRequester Tested and Working");
             // LOG
-            this.twitterBotLogger.log("", "RiotApiRequester Tested and Working");
+            this.logger.log("", "RiotApiRequester Tested and Working");
             if (this.league.loadPlayers(this.playerRosterFile)) {
                 System.out.println("Successfully Loaded Players");
                 // LOG
-                this.twitterBotLogger.log("", "Successfully Loaded Players");
+                this.logger.log("", "Successfully Loaded Players");
                 if (this.league.loadPlayerSummonerIds(this.riotApiHandler)) {
                     System.out.println("Successfully Loaded Summoner Ids");
                     // LOG
-                    this.twitterBotLogger.log("", "Successfully Loaded Summoner Ids");
+                    this.logger.log("", "Successfully Loaded Summoner Ids");
                 } else {
                     System.out.println("Unsuccessfully Loaded Summoner Ids");
                     // LOG
-                    this.twitterBotLogger.log("", "Unsuccessfully Loaded Summoner Ids");
+                    this.logger.log("", "Unsuccessfully Loaded Summoner Ids");
                     runningFlag = false;
                 }
             } else {
                 System.out.println("Unsuccessfully Loaded Players");
                 // LOG
-                this.twitterBotLogger.log("", "Unsuccessfully Loaded Players");
+                this.logger.log("", "Unsuccessfully Loaded Players");
                 runningFlag = false;
             }
         } else {
             System.out.println("RiotApiRequester Not Working");
             // LOG
-            this.twitterBotLogger.log("", "RiotApiRequester Not Working");
+            this.logger.log("", "RiotApiRequester Not Working");
             runningFlag = false;
         }
 
@@ -77,11 +102,17 @@ public class LCSTwitterBot {
             }
         }
 
-        this.twitterBotLogger.close();
+        this.logger.close();
     }
 
-    private String readInRiotApiFile() throws FileNotFoundException {
-        Scanner fileScanner = new Scanner(this.riotApiInfoFile);
+    /**
+     * Reads in the json from the apiFile that was passed in to the constructor and
+     * sets the apiInfoJSON object to a JSONObject of the contents of the file.
+     * 
+     * @throws FileNotFoundException If the apiInfoFile could not be found
+     */
+    private void readInApiFile() throws FileNotFoundException {
+        Scanner fileScanner = new Scanner(this.apiInfoFile);
         String fileContents = "";
 
         while (fileScanner.hasNext()) {
@@ -89,15 +120,25 @@ public class LCSTwitterBot {
         }
 
         fileScanner.close();
-        return fileContents;
+        this.apiInfoJSON = new JSONObject(fileContents);
     }
 
-    private static String getRiotApiKey(JSONObject riotJSON) {
-        return riotJSON.get("apiKey").toString();
+    /**
+     * Returns the value attached to the "riotApiKey" key in apiInfoJSON
+     * 
+     * @return The api key for the Riot Games api
+     */
+    private String getRiotApiKey() {
+        return this.apiInfoJSON.get("riotApiKey").toString();
     }
 
-    private static String getRiotRegion(JSONObject riotJSON) {
-        return riotJSON.get("region").toString();
+    /**
+     * Returns the value attached to the "riotRegion" key in apiInfoJSON
+     * 
+     * @return
+     */
+    private String getRiotRegion() {
+        return this.apiInfoJSON.get("riotRegion").toString();
     }
 
 }

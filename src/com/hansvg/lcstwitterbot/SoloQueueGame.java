@@ -1,3 +1,9 @@
+/**
+ * The SoloQueueGame Class represents a game of solo queue in the game League of Legends.
+ * 
+ * @author Hans Von Gruenigen
+ * @version 1.0
+ */
 package com.hansvg.lcstwitterbot;
 
 import java.util.ArrayList;
@@ -18,6 +24,13 @@ class SoloQueueGame {
     private Long gameQueueConfigId;
     private ArrayList<String[]> participants;
 
+    /**
+     * SoloQueueGame Class Constructor.
+     * 
+     * @param gameJSON JSONObject representing the game gotten from the Riot Games
+     *                 API
+     * @param league   The League that this game belongs to
+     */
     protected SoloQueueGame(JSONObject gameJSON, League league) {
         this.league = league;
         this.gameId = gameJSON.getLong("gameId");
@@ -47,42 +60,94 @@ class SoloQueueGame {
         }
     }
 
+    /**
+     * Getter for the Game's id.
+     * 
+     * @return The game id
+     */
     protected long getGameId() {
         return this.gameId;
     }
 
+    /**
+     * Getter for the Game's type.
+     * 
+     * @return The game type
+     */
     protected String getGameType() {
         return this.gameType;
     }
 
+    /**
+     * Getter for the game start time.
+     * 
+     * @return The game start time
+     */
     protected long getGameStartTime() {
         return this.gameStartTime;
     }
 
+    /**
+     * Getter for the map id of the game.
+     * 
+     * @return The map id
+     */
     protected long getMapId() {
         return this.mapId;
     }
 
+    /**
+     * Getter for the game length.
+     * 
+     * @return The game length
+     */
     protected long getGameLength() {
         return this.gameLength;
     }
 
+    /**
+     * Getter for the game's platform id.
+     * 
+     * @return The platform id
+     */
     protected String getPlatformId() {
         return this.platformId;
     }
 
+    /**
+     * Getter for the game's mode.
+     * 
+     * @return The game mode
+     */
     protected String getGameMode() {
         return this.gameMode;
     }
 
+    /**
+     * Getter for the game's queue config id.
+     * 
+     * @return The game queue config id
+     */
     protected long getGameQueueConfigId() {
         return this.gameQueueConfigId;
     }
 
+    /**
+     * Getter for the game's participants
+     * 
+     * @return The games participants represented by and array of strings in an
+     *         ArrayList
+     */
     protected ArrayList<String[]> getParticipants() {
         return this.participants;
     }
 
+    /**
+     * Computes the two teams of the game and puts them in an ArrayList containing
+     * ArrayList of Players represented by arrays of strings.
+     * 
+     * @return The ArrayList containing the game's teams
+     */
     protected ArrayList<ArrayList<String[]>> getTeams() {
         ArrayList<ArrayList<String[]>> teams = new ArrayList<>();
         ArrayList<String[]> team1 = new ArrayList<>();
@@ -104,6 +169,11 @@ class SoloQueueGame {
         return teams;
     }
 
+    /**
+     * Gets all the watch values of the players of the game and returns the sum.
+     * 
+     * @return The total watch value of the game
+     */
     protected int getGameWatchValue() {
         int watchValue = 0;
         for (String[] participant : this.participants) {
@@ -116,6 +186,9 @@ class SoloQueueGame {
         return watchValue;
     }
 
+    /**
+     * Utility function to print out the values of the game.
+     */
     protected void printGameInfo() {
         System.out.println("--------Game Info for Game ID: " + this.gameId + "--------");
         System.out.println("Map ID: " + this.mapId);

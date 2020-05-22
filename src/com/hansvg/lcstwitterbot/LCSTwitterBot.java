@@ -63,9 +63,9 @@ public class LCSTwitterBot {
         boolean runningFlag = true;
 
         if (this.riotApiHandler.isWorking()) {
-            System.out.println("RiotApiRequester Tested and Working");
+            System.out.println("RiotApiHandler Tested and Working");
             // LOG
-            this.logger.log("", "RiotApiRequester Tested and Working");
+            this.logger.log("", "RiotApiHandler Tested and Working");
             if (this.league.loadPlayers(this.playerRosterFile)) {
                 System.out.println("Successfully Loaded Players");
                 // LOG
@@ -126,7 +126,7 @@ public class LCSTwitterBot {
     /**
      * Returns the value attached to the "riotApiKey" key in apiInfoJSON
      * 
-     * @return The api key for the Riot Games api
+     * @return The api key for the Riot Games API
      */
     private String getRiotApiKey() {
         return this.apiInfoJSON.get("riotApiKey").toString();
@@ -135,7 +135,7 @@ public class LCSTwitterBot {
     /**
      * Returns the value attached to the "riotRegion" key in apiInfoJSON
      * 
-     * @return
+     * @return The region that the Riot Games API should make calls to
      */
     private String getRiotRegion() {
         return this.apiInfoJSON.get("riotRegion").toString();

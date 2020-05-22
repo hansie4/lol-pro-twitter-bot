@@ -179,7 +179,7 @@ class RiotApiHandler {
             if (response.statusCode() == 200) {
                 SoloQueueGame activeGame = new SoloQueueGame(responseBodyJSON, league);
                 activeSoloQueueGames.add(activeGame);
-                updateIDsToScan(summonerIds, activeGame.getParticipants());
+                updateIDsToScan(summonerIds, activeGame.getAllPlayersIds());
             } else if (response.statusCode() == 404) {
                 // summoner id not in active game
                 summonerIds.remove(0);
@@ -223,28 +223,17 @@ class RiotApiHandler {
 
     /**
      * Helper method for the loadActiveSoloQueueGames() function that takes in an
-     * ArrayList of String Arrays that represent players in a game then removes
-     * those participant's ids from the other ArrayList passed in of Ids so that no
-     * more ids then needed are checked by the RiotApiHandler.
+     * ArrayList of Strings that represent players in a game then removes those
+     * participant's ids from the other ArrayList passed in of Ids so that no more
+     * ids then needed are checked by the RiotApiHandler.
      * 
-     * @param idList               List of summoner ids to be scanned
-     * @param participantsToRemove ArrayList of string arrays where index one
-     *                             contains summoner ids that are to be removed
-     *                             from @param idList
+     * @param idList                 List of summoner ids to be scanned
+     * @param participantIdsToRemove ArrayList of id strings to remove from idList
      */
-    private void updateIDsToScan(ArrayList<String> idList, ArrayList<String[]> participantsToRemove) {
-
-        String[] idsToRemove = new String[participantsToRemove.size()];
-        for (int i = 0; i < participantsToRemove.size(); i++) {
-            idsToRemove[i] = participantsToRemove.get(i)[1];
+    private void updateIDsToScan(ArrayList<String> idList, ArrayList<String> participantIdsToRemove) {
+        for (String participantIdToRemove : participantIdsToRemove) {
+            idList.remove(participantIdToRemove);
         }
-
-        for (int i = 0; i < idsToRemove.length; i++) {
-            if (idList.contains(idsToRemove[i])) {
-                idList.remove(idsToRemove[i]);
-            }
-        }
-
     }
 
 }

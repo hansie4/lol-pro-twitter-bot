@@ -22,7 +22,8 @@ class SoloQueueGame {
     private String platformId;
     private String gameMode;
     private Long gameQueueConfigId;
-    private ArrayList<String[]> participants;
+    private SoloQueueTeam team1;
+    private SoloQueueTeam team2;
 
     /**
      * SoloQueueGame Class Constructor.
@@ -40,7 +41,6 @@ class SoloQueueGame {
         this.gameLength = gameJSON.getLong("gameLength");
         this.platformId = gameJSON.getString("platformId");
         this.gameMode = gameJSON.getString("gameMode");
-        this.participants = new ArrayList<>();
 
         if (!this.gameType.equals("CUSTOM_GAME")) {
             this.gameQueueConfigId = gameJSON.getLong("gameQueueConfigId");
@@ -48,16 +48,8 @@ class SoloQueueGame {
 
         JSONArray gameParticipants = gameJSON.getJSONArray("participants");
 
-        for (int i = 0; i < gameParticipants.length(); i++) {
-            JSONObject participantObjJSON = gameParticipants.getJSONObject(i);
-
-            String[] playerInfo = new String[] { participantObjJSON.getString("summonerName"),
-                    participantObjJSON.getString("summonerId"), Long.toString(participantObjJSON.getLong("teamId")),
-                    Long.toString(participantObjJSON.getLong("championId")),
-                    Boolean.toString(participantObjJSON.getBoolean("bot")) };
-
-            participants.add(playerInfo);
-        }
+        this.team1 = new SoloQueueTeam(gameParticipants, true, this.league);
+        this.team2 = new SoloQueueTeam(gameParticipants, false, this.league);
     }
 
     /**
@@ -133,57 +125,41 @@ class SoloQueueGame {
     }
 
     /**
-     * Getter for the game's participants
+     * Getter for SoloQueueTeam team1.
      * 
-     * @return The games participants represented by and array of strings in an
-     *         ArrayList
+     * @return SoloQueueTeam on blue side
      */
-    protected ArrayList<String[]> getParticipants() {
-        return this.participants;
+    protected SoloQueueTeam getTeam1() {
+        return this.team1;
     }
 
     /**
-     * Computes the two teams of the game and puts them in an ArrayList containing
-     * ArrayList of Players represented by arrays of strings.
+     * Getter for SoloQueueTeam team2.
      * 
-     * @return The ArrayList containing the game's teams
+     * @return SoloQueueTeam on red side
      */
-    protected ArrayList<ArrayList<String[]>> getTeams() {
-        ArrayList<ArrayList<String[]>> teams = new ArrayList<>();
-        ArrayList<String[]> team1 = new ArrayList<>();
-        ArrayList<String[]> team2 = new ArrayList<>();
-
-        for (String[] participant : participants) {
-            if (team1.isEmpty()) {
-                team1.add(participant);
-            } else if (participant[2].equals(team1.get(0)[2])) {
-                team1.add(participant);
-            } else {
-                team2.add(participant);
-            }
-        }
-
-        teams.add(team1);
-        teams.add(team2);
-
-        return teams;
+    protected SoloQueueTeam getTeam2() {
+        return this.team2;
     }
 
     /**
-     * Gets all the watch values of the players of the game and returns the sum.
+     * Function for getting all the ids of the pro players in this active
+     * SoloQueueGame.
      * 
-     * @return The total watch value of the game
+     * @return ArrayList containing all the player ids or pro players in this active
+     *         SoloQueueGame
      */
-    protected int getGameWatchValue() {
-        int watchValue = 0;
-        for (String[] participant : this.participants) {
-            Player player = this.league.getPlayerFromSummonerName(participant[0]);
+    protected ArrayList<String> getAllPlayersIds() {
+        ArrayList<String> playerIds = new ArrayList<>();
 
-            if (player != null) {
-                watchValue += player.getWatchValue();
-            }
+        for (String[] playerInfo : this.team1.getPlayers().values()) {
+            playerIds.add(playerInfo[1]);
         }
-        return watchValue;
+        for (String[] playerInfo : this.team2.getPlayers().values()) {
+            playerIds.add(playerInfo[1]);
+        }
+
+        return playerIds;
     }
 
     /**
@@ -200,24 +176,16 @@ class SoloQueueGame {
         System.out.println("Game Length: " + this.gameLength);
         System.out.println("-------------------------------------------------");
 
-        ArrayList<ArrayList<String[]>> teams = this.getTeams();
-        ArrayList<String[]> team1 = teams.get(0);
-        ArrayList<String[]> team2 = teams.get(1);
-
-        if (team1.size() == team2.size()) {
-            System.out.println("         Team 1         |         Team 2         ");
-            for (int i = 0; i < team1.size(); i++) {
-                System.out.printf("%24s|", team1.get(i)[0]);
-                System.out.printf("%24s\n", team2.get(i)[0]);
-            }
-        } else {
-            System.out.println("Teams of unequal size");
-            System.out.println("Team 1: " + team1);
-            System.out.println("Team 2: " + team2);
+        System.out.println("Blue Side:");
+        for (Player player : this.team1.getPlayers().keySet()) {
+            System.out.println("\t" + player.getName());
         }
 
-        System.out.println("-------------------------------------------------");
-        System.out.println("Game Watch Value: " + this.getGameWatchValue());
+        System.out.println("Red Side:");
+        for (Player player : this.team2.getPlayers().keySet()) {
+            System.out.println("\t" + player.getName());
+        }
+
         System.out.println("-------------------------------------------------");
     }
 

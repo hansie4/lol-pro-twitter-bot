@@ -20,7 +20,7 @@ import java.util.HashMap;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
-public class TwitchApiHandler {
+class TwitchApiHandler {
 
     private final int MAX_DISPLAYNAMES_PER_CALL = 100;
     private final int SECONDS_TO_WAIT_BETWEEN_CALLS = 10;

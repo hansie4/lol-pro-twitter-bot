@@ -4,7 +4,7 @@
  * @author Hans Von Gruenigen
  * @version 1.0
  */
-package com.hansvg.lcstwitterbot;
+package com.hansvg.lolprotwitterbot;
 
 import java.io.IOException;
 import java.net.URI;
@@ -19,9 +19,10 @@ import org.json.JSONObject;
 
 class RiotApiHandler {
 
+    private final int SECONDS_TO_WAIT_BETWEEN_CALLS = 10;
+    private HttpClient httpClient;
     private String apiKey;
     private String region;
-    private HttpClient httpClient;
     private Logger logger;
 
     /**
@@ -32,9 +33,9 @@ class RiotApiHandler {
      * @param logger The Logger object to log the processes
      */
     protected RiotApiHandler(String apiKey, String region, Logger logger) {
+        httpClient = HttpClient.newHttpClient();
         this.apiKey = apiKey;
         this.region = region;
-        httpClient = HttpClient.newHttpClient();
         this.logger = logger;
     }
 
@@ -114,8 +115,11 @@ class RiotApiHandler {
                             "Summoner Name \"" + currentSummonerName + "\" could not be found on " + region);
                 } else if (response.statusCode() == 429) {
                     // rate limit reached
+                    // LOG
+                    this.logger.log("", "Riot Games API rate limit reached trying to load summoner ids waiting "
+                            + SECONDS_TO_WAIT_BETWEEN_CALLS + " seconds then trying again");
                     currentSummonerIndex--;
-                    Thread.sleep(10000);
+                    Thread.sleep(1000 * SECONDS_TO_WAIT_BETWEEN_CALLS);
                 } else {
                     // error with getting information from api
                     currentPlayer.getSummonerIds()[currentSummonerIndex] = null;
@@ -185,7 +189,10 @@ class RiotApiHandler {
                 summonerIds.remove(0);
             } else if (response.statusCode() == 429) {
                 // rate limit reached
-                Thread.sleep(10000);
+                // LOG
+                this.logger.log("", "Riot Games API rate limit reached trying to load active solo queue games waiting "
+                        + SECONDS_TO_WAIT_BETWEEN_CALLS + " seconds then trying again");
+                Thread.sleep(1000 * SECONDS_TO_WAIT_BETWEEN_CALLS);
             } else {
                 // error with getting information from api
                 summonerIds.remove(0);

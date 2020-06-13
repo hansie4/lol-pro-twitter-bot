@@ -4,13 +4,14 @@
  * @author Hans Von Gruenigen
  * @version 1.0
  */
-package com.hansvg.lcstwitterbot;
+package com.hansvg.lolprotwitterbot;
 
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Scanner;
 
 class League {
@@ -67,12 +68,25 @@ class League {
 
                 while (playerRosterScanner.hasNextLine()) {
 
-                    String[] playerInfo = playerRosterScanner.nextLine().split(",", 7);
+                    String[] playerInfo = playerRosterScanner.nextLine().split(",", 6);
 
-                    Player readInPlayer = new Player(playerInfo[0], playerInfo[1], playerInfo[2], playerInfo[3],
-                            playerInfo[4], playerInfo[5], playerInfo[6].split(","));
+                    try {
+                        String name = playerInfo[0];
+                        String position = playerInfo[1];
+                        String team = playerInfo[2];
+                        String twitterHandle = playerInfo[3];
+                        String twitchName = playerInfo[4];
+                        String[] summonerNames = playerInfo[5].split(",");
 
-                    players.add(readInPlayer);
+                        Player readInPlayer = new Player(name, position, team, twitterHandle, twitchName,
+                                summonerNames);
+
+                        players.add(readInPlayer);
+                    } catch (Exception e) {
+                        logger.log("",
+                                "Player \"" + playerInfo[0] + "\" could not be added to league because info invalid in "
+                                        + playerRosterFile.toString());
+                    }
                 }
             }
             playerRosterScanner.close();
@@ -199,6 +213,40 @@ class League {
     }
 
     /**
+     * Gets a the player that has the passed in twitch name
+     * 
+     * @param twitchName The username for their twitch account
+     * @return The player with the twitch name or null if no player owns it
+     */
+    protected Player getPlayerFromTwitchName(String twitchName) {
+        for (Player p : this.players) {
+            if (p.getTwitchName() != null) {
+                if (p.getTwitchName().equals(twitchName)) {
+                    return p;
+                }
+            }
+        }
+        return null;
+    }
+
+    /**
+     * Gets the player that has the passed in twitch user id
+     * 
+     * @param twitchId The id of the player that is being searched for
+     * @return The player with the twitch user id or null if no player owns it
+     */
+    protected Player getPlayerFromTwitchId(String twitchId) {
+        for (Player p : this.players) {
+            if (p.getTwitchUserId() != null) {
+                if (p.getTwitchUserId().equals(twitchId)) {
+                    return p;
+                }
+            }
+        }
+        return null;
+    }
+
+    /**
      * Goes through each Player in the players ArrayList in the League and adds
      * their summoner ids to an ArrayList that the function then returns.
      * 
@@ -214,6 +262,37 @@ class League {
             }
         }
         return ids;
+    }
+
+    /**
+     * Prints the values for each player that is part of the league
+     */
+    protected void printLeaguePlayerInfo() {
+        System.out.println("----------League's player information----------");
+        for (int pIndex = 0; pIndex < this.players.size(); pIndex++) {
+            Player p = this.players.get(pIndex);
+
+            System.out.printf("#%3d | ", pIndex);
+            System.out.printf("Name: %15s | ", p.getName());
+            System.out.printf("Position: %7s | ", p.getPosition());
+            System.out.printf("Team: %25s | ", p.getTeam());
+            System.out.printf("Twitch Name: %15s | ", p.getTwitchName());
+            if (p.getTwitchUserId() != null) {
+                System.out.printf("Twitch Id: %15s | ", p.getTwitchUserId());
+            } else {
+                System.out.print("Twitch Id: -------- | ");
+            }
+            if (p.getTwitterHandle() != null) {
+                System.out.printf("Twitter: %15s | \n", p.getTwitterHandle());
+            } else {
+                System.out.print("Twitter: -------- | \n");
+            }
+
+            System.out.println("\tLeague Accounts:    " + Arrays.toString(p.getSummonerNames()));
+            System.out.println("\tLeague Account Ids: " + Arrays.toString(p.getSummonerIds()));
+
+        }
+        System.out.println("-----------------------------------------------");
     }
 
 }

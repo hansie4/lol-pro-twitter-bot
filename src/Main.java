@@ -1,6 +1,6 @@
 import java.io.File;
 
-import com.hansvg.lcstwitterbot.LCSTwitterBot;
+import com.hansvg.lolprotwitterbot.LoLProTwitterBot;
 
 public class Main {
 
@@ -11,9 +11,9 @@ public class Main {
     public static void main(String[] args) {
 
         try {
-            LCSTwitterBot lcsTwitterBot = new LCSTwitterBot(new File(playerRosterFilePath), new File(riotInfoFilePath),
-                    new File(logFilePath));
-            lcsTwitterBot.start();
+            LoLProTwitterBot lolProTwitterBot = new LoLProTwitterBot(new File(playerRosterFilePath),
+                    new File(riotInfoFilePath), new File(logFilePath));
+            lolProTwitterBot.run();
         } catch (Exception e) {
             System.out.println(e);
         }

@@ -4,7 +4,7 @@
  * @author Hans Von Gruenigen
  * @version 1.0
  */
-package com.hansvg.lcstwitterbot;
+package com.hansvg.lolprotwitterbot;
 
 import java.util.HashMap;
 

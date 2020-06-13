@@ -4,7 +4,7 @@
  * @author Hans Von Gruenigen
  * @version 1.0
  */
-package com.hansvg.lcstwitterbot;
+package com.hansvg.lolprotwitterbot;
 
 class Player {
 
@@ -13,34 +13,44 @@ class Player {
     }
 
     private String name;
-    private int watchValue;
     private Position position;
     private String team;
     private String twitterHandle;
-    private String twitchUsername;
+    private String twitchName;
+    private String twitchUserId;
     private String[] summonerNames;
     private String[] summonerIds;
 
     /**
      * Player Class Constructor.
      * 
-     * @param name           Player name
-     * @param watchValue     Player watch value
-     * @param position       Player position
-     * @param team           Player team
-     * @param twitterHandle  Player twitter handle
-     * @param twitchUsername Player twitch channel username
-     * @param summonerNames  Array of Player summoner names
+     * @param name          Player name
+     * @param watchValue    Player watch value
+     * @param position      Player position
+     * @param team          Player team
+     * @param twitterHandle Player twitter handle
+     * @param twitchName    Player twitch channel name
+     * @param summonerNames Array of Player summoner names
      */
-    protected Player(String name, String watchValue, String position, String team, String twitterHandle,
-            String twitchUsername, String[] summonerNames) {
+    protected Player(String name, String position, String team, String twitterHandle, String twitchName,
+            String[] summonerNames) {
 
         this.name = name;
-        this.watchValue = Integer.parseInt(watchValue);
         this.position = getPositionFromString(position);
         this.team = team;
-        this.twitterHandle = twitterHandle;
-        this.twitchUsername = twitchUsername;
+
+        if (twitterHandle.equals("-") || twitterHandle.equals("")) {
+            this.twitterHandle = "";
+        } else {
+            this.twitterHandle = twitterHandle;
+        }
+
+        if (twitchName.equals("-") || twitchName.equals("")) {
+            this.twitchName = "";
+        } else {
+            this.twitchName = twitchName;
+        }
+
         this.summonerNames = summonerNames;
         summonerIds = new String[summonerNames.length];
     }
@@ -52,15 +62,6 @@ class Player {
      */
     protected String getName() {
         return this.name;
-    }
-
-    /**
-     * Getter for the Player's watch value.
-     * 
-     * @return The Player's watch value
-     */
-    protected int getWatchValue() {
-        return this.watchValue;
     }
 
     /**
@@ -95,8 +96,26 @@ class Player {
      * 
      * @return The Player's twitch username
      */
-    protected String getTwitchUsername() {
-        return this.twitchUsername;
+    protected String getTwitchName() {
+        return this.twitchName;
+    }
+
+    /**
+     * Setter for the Player's twitch user id
+     * 
+     * @param twitchUserId The twitch user id to set
+     */
+    protected void setTwitchUserId(String twitchUserId) {
+        this.twitchUserId = twitchUserId;
+    }
+
+    /**
+     * Getter for the Player's twitch user id
+     * 
+     * @return The Player's twitch user id
+     */
+    protected String getTwitchUserId() {
+        return this.twitchUserId;
     }
 
     /**
@@ -156,13 +175,13 @@ class Player {
      *         SUPPORT enumeration is returned as a default
      */
     private Position getPositionFromString(String position) {
-        if (position.equals("TOP")) {
+        if (position.toUpperCase().equals("TOP")) {
             return Position.TOP;
-        } else if (position.equals("JUNGLE")) {
+        } else if (position.toUpperCase().equals("JUNGLE")) {
             return Position.JUNGLE;
-        } else if (position.equals("MID")) {
+        } else if (position.toUpperCase().equals("MID")) {
             return Position.MID;
-        } else if (position.equals("ADC")) {
+        } else if (position.toUpperCase().equals("ADC")) {
             return Position.ADC;
         } else {
             return Position.SUPPORT;

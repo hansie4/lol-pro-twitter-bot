@@ -4,7 +4,7 @@
  * @author Hans Von Gruenigen
  * @version 1.0
  */
-package com.hansvg.lcstwitterbot;
+package com.hansvg.lolprotwitterbot;
 
 import java.util.ArrayList;
 
@@ -22,8 +22,8 @@ class SoloQueueGame {
     private String platformId;
     private String gameMode;
     private Long gameQueueConfigId;
-    private SoloQueueTeam team1;
-    private SoloQueueTeam team2;
+    private SoloQueueTeam blueTeam;
+    private SoloQueueTeam redTeam;
 
     /**
      * SoloQueueGame Class Constructor.
@@ -48,8 +48,8 @@ class SoloQueueGame {
 
         JSONArray gameParticipants = gameJSON.getJSONArray("participants");
 
-        this.team1 = new SoloQueueTeam(gameParticipants, true, this.league);
-        this.team2 = new SoloQueueTeam(gameParticipants, false, this.league);
+        this.blueTeam = new SoloQueueTeam(gameParticipants, true, this.league);
+        this.redTeam = new SoloQueueTeam(gameParticipants, false, this.league);
     }
 
     /**
@@ -129,8 +129,8 @@ class SoloQueueGame {
      * 
      * @return SoloQueueTeam on blue side
      */
-    protected SoloQueueTeam getTeam1() {
-        return this.team1;
+    protected SoloQueueTeam getBlueTeam() {
+        return this.blueTeam;
     }
 
     /**
@@ -138,8 +138,17 @@ class SoloQueueGame {
      * 
      * @return SoloQueueTeam on red side
      */
-    protected SoloQueueTeam getTeam2() {
-        return this.team2;
+    protected SoloQueueTeam getRedTeam() {
+        return this.redTeam;
+    }
+
+    /**
+     * Getter for the league this game belongs to
+     * 
+     * @return this game's league
+     */
+    protected League getLeague() {
+        return this.league;
     }
 
     /**
@@ -152,10 +161,10 @@ class SoloQueueGame {
     protected ArrayList<String> getAllPlayersIds() {
         ArrayList<String> playerIds = new ArrayList<>();
 
-        for (String[] playerInfo : this.team1.getPlayers().values()) {
+        for (String[] playerInfo : this.blueTeam.getPlayers().values()) {
             playerIds.add(playerInfo[1]);
         }
-        for (String[] playerInfo : this.team2.getPlayers().values()) {
+        for (String[] playerInfo : this.redTeam.getPlayers().values()) {
             playerIds.add(playerInfo[1]);
         }
 
@@ -177,12 +186,12 @@ class SoloQueueGame {
         System.out.println("-------------------------------------------------");
 
         System.out.println("Blue Side:");
-        for (Player player : this.team1.getPlayers().keySet()) {
+        for (Player player : this.blueTeam.getPlayers().keySet()) {
             System.out.println("\t" + player.getName());
         }
 
         System.out.println("Red Side:");
-        for (Player player : this.team2.getPlayers().keySet()) {
+        for (Player player : this.redTeam.getPlayers().keySet()) {
             System.out.println("\t" + player.getName());
         }
 

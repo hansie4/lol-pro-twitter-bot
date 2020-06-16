@@ -19,7 +19,7 @@ import org.json.JSONObject;
 
 class RiotApiHandler {
 
-    private final int SECONDS_TO_WAIT_BETWEEN_CALLS = 10;
+    private final int SECONDS_TO_WAIT_BETWEEN_CALLS = 30;
     private HttpClient httpClient;
     private String apiKey;
     private String region;
@@ -125,7 +125,8 @@ class RiotApiHandler {
                     currentPlayer.getSummonerIds()[currentSummonerIndex] = null;
                     // LOG
                     this.logger.log("",
-                            "Error code " + response.statusCode() + " from riot api when trying to load summonerIds");
+                            "Error code " + response.statusCode() + " from riot api when trying to load summonerId for "
+                                    + currentSummonerName + " Response: " + response.body());
                 }
 
             }

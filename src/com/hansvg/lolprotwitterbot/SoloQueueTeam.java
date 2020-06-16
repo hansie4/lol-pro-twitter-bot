@@ -25,7 +25,7 @@ class SoloQueueTeam {
      * @param league       The league that the participants of the game are a part
      *                     of
      */
-    SoloQueueTeam(JSONArray participants, boolean blueSide, League league) {
+    protected SoloQueueTeam(JSONArray participants, boolean blueSide, League league) {
         this.players = new HashMap<>();
         this.blueSide = blueSide;
 

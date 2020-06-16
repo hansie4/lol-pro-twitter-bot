@@ -37,7 +37,7 @@ class TwitchApiHandler {
      * @param clientSecret The client secret for the twitch api
      * @param logger       The logger object to log what happens in the program
      */
-    TwitchApiHandler(String clientId, String clientSecret, Logger logger) {
+    protected TwitchApiHandler(String clientId, String clientSecret, Logger logger) {
         this.httpClient = HttpClient.newHttpClient();
         this.clientId = clientId;
         this.clientSecret = clientSecret;

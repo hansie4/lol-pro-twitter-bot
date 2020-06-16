@@ -26,7 +26,7 @@ class League {
      * @param logger The Logger object to log the processes withen this League
      *               object
      */
-    League(Logger logger) {
+    protected League(Logger logger) {
         this.players = new ArrayList<>();
         this.activeSoloQueueGames = new ArrayList<>();
         this.logger = logger;

@@ -1,6 +1,10 @@
 {
-    "riotApiKey": "#####-########-####-####-####-############",
-    "riotRegion": "na1",
-    "twitchClientId": "gwnfi96n7ouhas7wwll5b6z3gbn14s",
-    "twitchClientSecret": "134bwymv6bunlttnhr1vwq10zl5wsr"
+    "riotApiKey": "",
+    "riotRegion": "",
+    "twitchClientId": "",
+    "twitchClientSecret": "",
+    "twitterConsumerKey": "",
+    "twitterConsumerSecret": "",
+    "twitterToken": "",
+    "twitterTokenSecret": ""
 }

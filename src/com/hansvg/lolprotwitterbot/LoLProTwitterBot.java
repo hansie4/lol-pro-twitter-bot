@@ -223,4 +223,40 @@ public class LoLProTwitterBot {
         return this.apiInfoJSON.get("twitchClientSecret").toString();
     }
 
+    /**
+     * Returns the value attached to the "twitterConsumerKey" key in apiInfoJSON
+     * 
+     * @return The twitter consumer api key
+     */
+    private String getTwitterConsumerKey() {
+        return this.apiInfoJSON.getString("twitterConsumerKey").toString();
+    }
+
+    /**
+     * Returns the value attached to the "twitterConsumerSecret" key in apiInfoJSON
+     * 
+     * @return The twitter consumer secret
+     */
+    private String getTwitterConsumerSecret() {
+        return this.apiInfoJSON.getString("twitterConsumerSecret").toString();
+    }
+
+    /**
+     * Returns the value attached to the "twitterToken" key in apiInfoJSON
+     * 
+     * @return The twitter access token
+     */
+    private String getTwitterToken() {
+        return this.apiInfoJSON.getString("twitterToken").toString();
+    }
+
+    /**
+     * Returns the value attached to the "twitterTokenSecret" key in apiInfoJSON
+     * 
+     * @return The twitter access token secret
+     */
+    private String getTwitterTokenSecret() {
+        return this.apiInfoJSON.getString("twitterTokenSecret").toString();
+    }
+
 }

@@ -29,6 +29,7 @@ public class LoLProTwitterBot {
 
     private RiotApiHandler riotApiHandler;
     private TwitchApiHandler twitchApiHandler;
+    private TwitterApiHandler twitterApiHandler;
 
     private Logger logger;
 
@@ -51,8 +52,11 @@ public class LoLProTwitterBot {
         this.logger.open();
         this.league = new League(this.logger);
         this.readInApiFile();
-        this.riotApiHandler = new RiotApiHandler(getRiotApiKey(), getRiotRegion(), this.logger);
-        this.twitchApiHandler = new TwitchApiHandler(getTwitchClientId(), getTwitchClientSecret(), this.logger);
+        this.riotApiHandler = new RiotApiHandler(this.getRiotApiKey(), this.getRiotRegion(), this.logger);
+        this.twitchApiHandler = new TwitchApiHandler(this.getTwitchClientId(), this.getTwitchClientSecret(),
+                this.logger);
+        this.twitterApiHandler = new TwitterApiHandler(this.getTwitterConsumerKey(), this.getTwitterConsumerSecret(),
+                this.getTwitterToken(), this.getTwitterTokenSecret(), this.logger);
         System.out.println("LCSTwitterBot Created");
     }
 
@@ -155,7 +159,7 @@ public class LoLProTwitterBot {
                 }
             }
 
-            System.out.println();
+            System.out.println("Game Score: " + this.calculateGameScore(game));
         }
 
         if (runningFlag) {
@@ -257,6 +261,82 @@ public class LoLProTwitterBot {
      */
     private String getTwitterTokenSecret() {
         return this.apiInfoJSON.getString("twitterTokenSecret").toString();
+    }
+
+    /**
+     * Method to calculate a "gamescore" value for the passed in game to determine
+     * how entertaining the game would be to watch
+     * 
+     * @param gameToScore The game to score
+     * @return An integer representing the "gamescore" value
+     */
+    private int calculateGameScore(SoloQueueGame gameToScore) {
+        SoloQueueTeam blueTeam = gameToScore.getBlueTeam();
+        SoloQueueTeam redTeam = gameToScore.getRedTeam();
+
+        HashMap<Player, Integer> blueTeamStreamers = this.twitchApiHandler.getStreamersOnTeam(blueTeam,
+                gameToScore.getLeague());
+        HashMap<Player, Integer> redTeamStreamers = this.twitchApiHandler.getStreamersOnTeam(redTeam,
+                gameToScore.getLeague());
+
+        int gameScore = 0;
+
+        int numberOfMainTeamPlayers = 0;
+        int numberOfAcademyPlayers = 0;
+
+        for (Player player : blueTeam.getPlayers().keySet()) {
+            if (player != null) {
+                if (player.getTeam().contains("Academy") || player.getTeam().contains("academy")) {
+                    numberOfAcademyPlayers++;
+                } else {
+                    numberOfMainTeamPlayers++;
+                }
+            }
+        }
+        for (Player player : redTeam.getPlayers().keySet()) {
+            if (player != null) {
+                if (player.getTeam().contains("Academy") || player.getTeam().contains("academy")) {
+                    numberOfAcademyPlayers++;
+                } else {
+                    numberOfMainTeamPlayers++;
+                }
+            }
+        }
+
+        int heighestViewCount = 0;
+
+        for (Player player : blueTeamStreamers.keySet()) {
+            if (player != null) {
+                if (blueTeamStreamers.get(player) > 0) {
+                    if (blueTeamStreamers.get(player) > heighestViewCount) {
+                        heighestViewCount = blueTeamStreamers.get(player);
+                    }
+                }
+            }
+        }
+
+        for (Player player : redTeamStreamers.keySet()) {
+            if (player != null) {
+                if (redTeamStreamers.get(player) > 0) {
+                    if (redTeamStreamers.get(player) > heighestViewCount) {
+                        heighestViewCount = redTeamStreamers.get(player);
+                    }
+                }
+            }
+        }
+
+        gameScore = (1000 * numberOfMainTeamPlayers) + (500 * numberOfAcademyPlayers) + (heighestViewCount);
+
+        System.out.println("Number of Main Team Players: " + numberOfMainTeamPlayers);
+        System.out.println("Number of Academy Team Players: " + numberOfAcademyPlayers);
+        System.out.println("Heighest View Count: " + heighestViewCount);
+
+        return gameScore;
+    }
+
+    private String createTweet(SoloQueueGame game) {
+        // TO BE IMPLEMENTED
+        return null;
     }
 
 }

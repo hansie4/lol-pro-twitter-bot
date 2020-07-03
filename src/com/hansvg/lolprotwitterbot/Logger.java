@@ -16,7 +16,7 @@ import java.time.OffsetDateTime;
 
 class Logger extends FileWriter {
 
-    PrintWriter printWriter;
+    private PrintWriter printWriter;
 
     /**
      * Logger Class Constructor.

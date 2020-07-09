@@ -262,12 +262,30 @@ public class LoLProTwitterBot {
         SoloQueueTeam redTeam = gameToScore.getRedTeam();
 
         int gameScore = 0;
+        int numberOfMainTeamPlayers = 0;
+        int numberOfAcademyPlayers = 0;
+        int heighestViewCount = 0;
 
-        if (!blueTeamStreamers.isEmpty() || !redTeamStreamers.isEmpty()) {
-            int numberOfMainTeamPlayers = 0;
-            int numberOfAcademyPlayers = 0;
-            int heighestViewCount = 0;
+        for (Player player : blueTeamStreamers.keySet()) {
+            if (player != null) {
+                if (blueTeamStreamers.get(player) > 0) {
+                    if (blueTeamStreamers.get(player) > heighestViewCount) {
+                        heighestViewCount = blueTeamStreamers.get(player);
+                    }
+                }
+            }
+        }
+        for (Player player : redTeamStreamers.keySet()) {
+            if (player != null) {
+                if (redTeamStreamers.get(player) > 0) {
+                    if (redTeamStreamers.get(player) > heighestViewCount) {
+                        heighestViewCount = redTeamStreamers.get(player);
+                    }
+                }
+            }
+        }
 
+        if (heighestViewCount > 0) {
             for (Player player : blueTeam.getPlayers().keySet()) {
                 if (player != null) {
                     if (player.getTeam().contains("Academy") || player.getTeam().contains("academy")) {
@@ -286,29 +304,9 @@ public class LoLProTwitterBot {
                     }
                 }
             }
-            for (Player player : blueTeamStreamers.keySet()) {
-                if (player != null) {
-                    if (blueTeamStreamers.get(player) > 0) {
-                        if (blueTeamStreamers.get(player) > heighestViewCount) {
-                            heighestViewCount = blueTeamStreamers.get(player);
-                        }
-                    }
-                }
-            }
-            for (Player player : redTeamStreamers.keySet()) {
-                if (player != null) {
-                    if (redTeamStreamers.get(player) > 0) {
-                        if (redTeamStreamers.get(player) > heighestViewCount) {
-                            heighestViewCount = redTeamStreamers.get(player);
-                        }
-                    }
-                }
-            }
 
-            if (heighestViewCount > 0) {
-                gameScore = (1000 * numberOfMainTeamPlayers) + (500 * numberOfAcademyPlayers)
-                        + (int) (8.5 * Math.pow(heighestViewCount, 0.6));
-            }
+            gameScore = (1000 * numberOfMainTeamPlayers) + (500 * numberOfAcademyPlayers)
+                    + (int) (8.5 * Math.pow(heighestViewCount, 0.6));
         }
 
         return gameScore;

@@ -19,6 +19,8 @@ import java.nio.charset.StandardCharsets;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 import java.util.Base64;
+import java.util.logging.Logger;
+
 import javax.crypto.Mac;
 import javax.crypto.spec.SecretKeySpec;
 
@@ -55,9 +57,6 @@ class TwitterApiHandler {
         this.oauth_token = oauth_token;
         this.oauth_token_secret = oauth_token_secret;
         this.logger = logger;
-
-        // LOG
-        this.logger.log("", "TwitterApiHandler created");
     }
 
     /**
@@ -83,39 +82,38 @@ class TwitterApiHandler {
 
             if (response.statusCode() == 200) {
                 // LOG
-                this.logger.log("", "Tweed Posted");
+                this.logger.info("Successfully posted tweet");
                 return new JSONObject(response.body());
             } else if (response.statusCode() == 429) {
                 // LOG
-                this.logger.log("", "Twitter API rate limit reached trying to revoke token waiting "
-                        + SECONDS_TO_WAIT_BETWEEN_CALLS + " seconds then trying again");
+                this.logger.warning("Twitter Api Rate Limit reached. Retrying after " + (SECONDS_TO_WAIT_BETWEEN_CALLS)
+                        + " seconds");
                 Thread.sleep(1000 * SECONDS_TO_WAIT_BETWEEN_CALLS);
                 return tweet(statusToPost);
             } else {
                 // LOG
-                this.logger.log("",
-                        "Status code " + response.statusCode() + " returned when making request: " + request.uri());
+                this.logger.warning("Error posting tweet to Twitter Api. Status Code: " + response.statusCode());
                 return null;
             }
         } catch (NoSuchAlgorithmException e) {
             // LOG
-            this.logger.log("", "NoSuchAlgorithmException when trying to post status to twitter: " + e.getMessage());
+            this.logger.severe("NoSuchAlgorithmException");
             return null;
         } catch (InvalidKeyException e) {
             // LOG
-            this.logger.log("", "InvalidKeyException when trying to post status to twitter: " + e.getMessage());
+            this.logger.severe("InvalidKeyException");
             return null;
         } catch (URISyntaxException e) {
             // LOG
-            this.logger.log("", "URISyntaxException when trying to post status to twitter: " + e.getMessage());
+            this.logger.severe("URISyntaxException");
             return null;
         } catch (IOException e) {
             // LOG
-            this.logger.log("", "IOException when trying to post status to twitter: " + e.getMessage());
+            this.logger.severe("IOException");
             return null;
         } catch (InterruptedException e) {
             // LOG
-            this.logger.log("", "InterruptedException when trying to post status to twitter: " + e.getMessage());
+            this.logger.severe("InterruptedException");
             return null;
         }
     }

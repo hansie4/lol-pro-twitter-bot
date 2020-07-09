@@ -14,6 +14,7 @@ import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.net.http.HttpResponse.BodyHandlers;
 import java.util.ArrayList;
+import java.util.logging.Logger;
 
 import org.json.JSONObject;
 
@@ -47,7 +48,6 @@ class RiotApiHandler {
      */
     protected boolean isWorking() {
         try {
-
             URI requestURI = new URI("https://" + region + ".api.riotgames.com/lol/summoner/v4/summoners/by-name/"
                     + summonerNameNoSpaces("Hansie"));
 
@@ -56,19 +56,22 @@ class RiotApiHandler {
             HttpResponse<String> response = this.httpClient.send(request, BodyHandlers.ofString());
 
             if (response.statusCode() == 200 || response.statusCode() == 404 || response.statusCode() == 429) {
+                this.logger.info("RiotApiHandler Tested and Working");
                 return true;
             } else {
+                this.logger
+                        .info("RiotApiHandler Tested and Not Working. Status Code returned: " + response.statusCode());
                 return false;
             }
 
         } catch (URISyntaxException e) {
-            e.printStackTrace();
+            this.logger.severe("URISyntaxException");
             return false;
         } catch (InterruptedException e) {
-            e.printStackTrace();
+            this.logger.severe("InterruptedException");
             return false;
         } catch (IOException e) {
-            e.printStackTrace();
+            this.logger.severe("IOException");
             return false;
         }
     }
@@ -101,9 +104,8 @@ class RiotApiHandler {
 
                 HttpResponse<String> response = this.httpClient.send(request, BodyHandlers.ofString());
 
-                JSONObject responseBodyJSON = new JSONObject(response.body());
-
                 if (response.statusCode() == 200) {
+                    JSONObject responseBodyJSON = new JSONObject(response.body());
                     String currentSummonerId = responseBodyJSON.getString("id");
                     currentPlayer.getSummonerIds()[currentSummonerIndex] = currentSummonerId;
 
@@ -111,22 +113,22 @@ class RiotApiHandler {
                     // summoner name does not exist
                     currentPlayer.getSummonerIds()[currentSummonerIndex] = null;
                     // LOG
-                    this.logger.log("",
-                            "Summoner Name \"" + currentSummonerName + "\" could not be found on " + region);
+                    this.logger.warning(currentPlayer.getName() + "'s account, \"" + currentSummonerName
+                            + "\", could not be found by Riot Games Api");
                 } else if (response.statusCode() == 429) {
                     // rate limit reached
                     // LOG
-                    this.logger.log("", "Riot Games API rate limit reached trying to load summoner ids waiting "
-                            + SECONDS_TO_WAIT_BETWEEN_CALLS + " seconds then trying again");
+                    this.logger.warning("Riot Games Api Rate Limit Reached. Retrying after "
+                            + (SECONDS_TO_WAIT_BETWEEN_CALLS) + " seconds");
                     currentSummonerIndex--;
                     Thread.sleep(1000 * SECONDS_TO_WAIT_BETWEEN_CALLS);
                 } else {
                     // error with getting information from api
                     currentPlayer.getSummonerIds()[currentSummonerIndex] = null;
                     // LOG
-                    this.logger.log("",
-                            "Error code " + response.statusCode() + " from riot api when trying to load summonerId for "
-                                    + currentSummonerName + " Response: " + response.body());
+                    this.logger
+                            .warning("Error gathering information for summoner ids from Riot Games Api. Status Code: "
+                                    + response.statusCode());
                 }
 
             }
@@ -179,9 +181,8 @@ class RiotApiHandler {
 
             HttpResponse<String> response = this.httpClient.send(request, BodyHandlers.ofString());
 
-            JSONObject responseBodyJSON = new JSONObject(response.body());
-
             if (response.statusCode() == 200) {
+                JSONObject responseBodyJSON = new JSONObject(response.body());
                 SoloQueueGame activeGame = new SoloQueueGame(responseBodyJSON, league);
                 activeSoloQueueGames.add(activeGame);
                 updateIDsToScan(summonerIds, activeGame.getAllPlayersIds());
@@ -191,15 +192,16 @@ class RiotApiHandler {
             } else if (response.statusCode() == 429) {
                 // rate limit reached
                 // LOG
-                this.logger.log("", "Riot Games API rate limit reached trying to load active solo queue games waiting "
-                        + SECONDS_TO_WAIT_BETWEEN_CALLS + " seconds then trying again");
+                this.logger.warning("Riot Games Api Rate Limit Reached. Retrying after "
+                        + (SECONDS_TO_WAIT_BETWEEN_CALLS) + " seconds");
                 Thread.sleep(1000 * SECONDS_TO_WAIT_BETWEEN_CALLS);
             } else {
                 // error with getting information from api
                 summonerIds.remove(0);
                 // LOG
-                this.logger.log("", "Error code " + response.statusCode()
-                        + " from riot api when trying to load active solo queue games");
+                this.logger.warning(
+                        "Error gathering information for active solo queue game from Riot Games Api. Status Code: "
+                                + response.statusCode());
             }
 
             // Loading bar

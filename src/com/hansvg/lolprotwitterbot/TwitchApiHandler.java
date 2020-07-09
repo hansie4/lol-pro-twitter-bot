@@ -16,6 +16,7 @@ import java.net.http.HttpRequest.BodyPublishers;
 import java.net.http.HttpResponse.BodyHandlers;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.logging.Logger;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -42,9 +43,6 @@ class TwitchApiHandler {
         this.clientId = clientId;
         this.clientSecret = clientSecret;
         this.logger = logger;
-
-        // LOG
-        this.logger.log("", "TwitchApiHandler created");
     }
 
     /**
@@ -68,33 +66,32 @@ class TwitchApiHandler {
                 this.authToken = responseJSON.getString("access_token");
 
                 // LOG
-                this.logger.log("", "Twitch authentication token successfully retrieved from Twitch API");
+                this.logger.info("Twitch Api Authentication token successfully retrieved");
 
                 return true;
             } else if (response.statusCode() == 429) {
                 // LOG
-                this.logger.log("", "Twitch API rate limit reached trying to get authentication token. Waiting "
-                        + SECONDS_TO_WAIT_BETWEEN_CALLS + " seconds then trying again");
+                this.logger.warning("Twitch Api Rate Limit reached. Retrying after " + (SECONDS_TO_WAIT_BETWEEN_CALLS)
+                        + " seconds");
                 Thread.sleep(1000 * SECONDS_TO_WAIT_BETWEEN_CALLS);
                 return this.loadToken();
             } else {
                 // LOG
-                this.logger.log("",
-                        "Twitch authentication token unsuccessfully retrieved from Twitch API. Status Code: "
-                                + response.statusCode());
+                this.logger.warning(
+                        "Error getting authentication token from Twitch Api. Status Code: " + response.statusCode());
                 return false;
             }
         } catch (URISyntaxException e) {
             // LOG
-            this.logger.log("", "URISyntaxException getting Twitch authentication token: " + e.getMessage());
+            this.logger.severe("URISyntaxException");
             return false;
         } catch (IOException e) {
             // LOG
-            this.logger.log("", "IOException getting Twitch authentication token: " + e.getMessage());
+            this.logger.severe("IOException");
             return false;
         } catch (InterruptedException e) {
             // LOG
-            this.logger.log("", "InterruptedException getting Twitch authentication token: " + e.getMessage());
+            this.logger.severe("InterruptedException");
             return false;
         }
     }
@@ -116,28 +113,28 @@ class TwitchApiHandler {
                 this.authToken = null;
 
                 // LOG
-                this.logger.log("", "Twitch authentication token successfully revoked");
-
+                this.logger.info("Twitch Api Authentication token successfully revoked");
                 return true;
             } else if (response.statusCode() == 429) {
                 // LOG
-                this.logger.log("", "Twitch API rate limit reached trying to revoke authentication token. Waiting "
-                        + SECONDS_TO_WAIT_BETWEEN_CALLS + " seconds then trying again");
+                this.logger.warning("Twitch Api Rate Limit reached. Retrying after " + (SECONDS_TO_WAIT_BETWEEN_CALLS)
+                        + " seconds");
                 Thread.sleep(1000 * SECONDS_TO_WAIT_BETWEEN_CALLS);
                 return this.revokeToken();
             } else {
                 // LOG
-                this.logger.log("", "Twitch authentication token unsuccessfully revoked");
+                this.logger.warning(
+                        "Error revoking authentication token from Twitch Api. Status Code: " + response.statusCode());
                 return false;
             }
         } catch (URISyntaxException e) {
-            e.printStackTrace();
+            this.logger.severe("URISyntaxException");
             return false;
         } catch (IOException e) {
-            e.printStackTrace();
+            this.logger.severe("IOException");
             return false;
         } catch (InterruptedException e) {
-            e.printStackTrace();
+            this.logger.severe("InterruptedException");
             return false;
         }
     }
@@ -181,28 +178,28 @@ class TwitchApiHandler {
                     }
                 } else if (response.statusCode() == 429) {
                     // LOG
-                    this.logger.log("", "Twitch API rate limit reached trying to revoke token waiting "
-                            + SECONDS_TO_WAIT_BETWEEN_CALLS + " seconds then trying again");
+                    this.logger.warning("Twitch Api Rate Limit reached. Retrying after "
+                            + (SECONDS_TO_WAIT_BETWEEN_CALLS) + " seconds");
                     currentBlockOfPlayersIndex--;
                     Thread.sleep(1000 * SECONDS_TO_WAIT_BETWEEN_CALLS);
                 } else {
                     // LOG
-                    this.logger.log("",
-                            "Status code " + response.statusCode() + " returned when making request: " + request.uri());
+                    this.logger.warning(
+                            "Error loading twitch user ids from Twitch Api. Status Code: " + response.statusCode());
                 }
             }
             return true;
         } catch (URISyntaxException e) {
             // LOG
-            this.logger.log("", "URISyntaxException loading Twitch user ids: " + e.getMessage());
+            this.logger.severe("URISyntaxException");
             return false;
         } catch (IOException e) {
             // LOG
-            this.logger.log("", "IOException loading Twitch user ids: " + e.getMessage());
+            this.logger.severe("IOException");
             return false;
         } catch (InterruptedException e) {
             // LOG
-            this.logger.log("", "InterruptedException loading Twitch user ids: " + e.getMessage());
+            this.logger.severe("InterruptedException");
             return false;
         }
     }
@@ -246,22 +243,25 @@ class TwitchApiHandler {
                     }
                 }
             } else if (response.statusCode() == 429) {
+                // LOG
+                this.logger.warning("Twitch Api Rate Limit reached. Retrying after " + (SECONDS_TO_WAIT_BETWEEN_CALLS)
+                        + " seconds");
                 Thread.sleep(1000 * SECONDS_TO_WAIT_BETWEEN_CALLS);
                 return getStreamersOnTeam(team, league);
             } else {
                 // LOG
-                this.logger.log("",
-                        "Status code " + response.statusCode() + " returned when making request: " + request.uri());
+                this.logger.warning(
+                        "Error loading stream information from Twitch Api. Status Code: " + response.statusCode());
             }
             return streamers;
         } catch (URISyntaxException e) {
-            e.printStackTrace();
+            this.logger.severe("URISyntaxException");
             return null;
         } catch (IOException e) {
-            e.printStackTrace();
+            this.logger.severe("IOException");
             return null;
         } catch (InterruptedException e) {
-            e.printStackTrace();
+            this.logger.severe("InterruptedException");
             return null;
         }
     }

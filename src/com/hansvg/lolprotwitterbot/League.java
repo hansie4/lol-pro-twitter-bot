@@ -13,6 +13,7 @@ import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Scanner;
+import java.util.logging.Logger;
 
 class League {
 
@@ -83,9 +84,9 @@ class League {
 
                         players.add(readInPlayer);
                     } catch (Exception e) {
-                        logger.log("",
-                                "Player \"" + playerInfo[0] + "\" could not be added to league because info invalid in "
-                                        + playerRosterFile.toString());
+                        // LOG
+                        this.logger.warning("Error reading in player info from \"" + playerRosterFile.getAbsolutePath()
+                                + "\". Player Name: " + playerInfo[0]);
                     }
                 }
             }
@@ -93,13 +94,12 @@ class League {
 
             return true;
         } catch (FileNotFoundException e) {
-            e.printStackTrace();
             // LOG
-            this.logger.log("", "Error when loading in players from \"" + playerRosterFile + "\" " + e.getStackTrace());
+            this.logger.severe("FileNotFoundException");
             return false;
         } catch (Exception e) {
             // LOG
-            this.logger.log("", "Error when loading in players from \"" + playerRosterFile + "\" " + e.getStackTrace());
+            this.logger.severe("Exception " + e.getLocalizedMessage());
             return false;
         }
 
@@ -116,28 +116,24 @@ class League {
     protected boolean loadPlayerSummonerIds(RiotApiHandler riotApiHandler) {
         try {
             riotApiHandler.loadSummonerIds(this.players);
+            // LOG
+            this.logger.info("Players successfully loaded");
             return true;
         } catch (URISyntaxException e) {
-            e.printStackTrace();
             // LOG
-            this.logger.log("",
-                    "URISyntaxException from riotApiHandler.loadSummonerIds() " + e.getStackTrace().toString());
+            this.logger.severe("URISyntaxException");
             return false;
         } catch (InterruptedException e) {
-            e.printStackTrace();
             // LOG
-            this.logger.log("",
-                    "InterruptedException from riotApiHandler.loadSummonerIds() " + e.getStackTrace().toString());
+            this.logger.severe("InterruptedException");
             return false;
         } catch (IOException e) {
-            e.printStackTrace();
             // LOG
-            this.logger.log("", "IOException from riotApiHandler.loadSummonerIds() " + e.getStackTrace().toString());
+            this.logger.severe("IOException");
             return false;
         } catch (Exception e) {
-            e.printStackTrace();
             // LOG
-            this.logger.log("", "Exception from riotApiHandler.loadSummonerIds() " + e.getStackTrace().toString());
+            this.logger.severe("Exception " + e.getLocalizedMessage());
             return false;
         }
     }
@@ -152,30 +148,24 @@ class League {
     protected boolean loadActiveSoloQueueGames(RiotApiHandler riotApiHandler) {
         try {
             this.activeSoloQueueGames = riotApiHandler.loadActiveSoloQueueGames(this.players, this);
+            // LOG
+            this.logger.info("Active Solo Queue Games successfully loaded");
             return true;
         } catch (URISyntaxException e) {
-            e.printStackTrace();
             // LOG
-            this.logger.log("", "URISyntaxException from riotApiHandler.loadActiveSoloQueueGames() "
-                    + e.getStackTrace().toString());
+            this.logger.severe("URISyntaxException");
             return false;
         } catch (InterruptedException e) {
-            e.printStackTrace();
             // LOG
-            this.logger.log("", "InterruptedException from riotApiHandler.loadActiveSoloQueueGames() "
-                    + e.getStackTrace().toString());
+            this.logger.severe("InterruptedException");
             return false;
         } catch (IOException e) {
-            e.printStackTrace();
             // LOG
-            this.logger.log("",
-                    "IOException from riotApiHandler.loadActiveSoloQueueGames() " + e.getStackTrace().toString());
+            this.logger.severe("IOException");
             return false;
         } catch (Exception e) {
-            e.printStackTrace();
             // LOG
-            this.logger.log("",
-                    "Exception from riotApiHandler.loadActiveSoloQueueGames() " + e.getStackTrace().toString());
+            this.logger.severe("Exception " + e.getLocalizedMessage());
             return false;
         }
     }

@@ -14,11 +14,19 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Scanner;
+import java.util.Map.Entry;
+import java.util.logging.FileHandler;
+import java.util.logging.Handler;
+import java.util.logging.Logger;
+import java.util.logging.SimpleFormatter;
 
 import org.json.JSONException;
 import org.json.JSONObject;
 
 public class LoLProTwitterBot {
+
+    private final int MINIMUM_GAMESCORE_TO_TWEET = 5000;
+    private final int INTERVAL_TO_SCAN_ACTIVE_GAMES = 480;
 
     private File playerRosterFile;
     private File apiInfoFile;
@@ -30,6 +38,8 @@ public class LoLProTwitterBot {
     private RiotApiHandler riotApiHandler;
     private TwitchApiHandler twitchApiHandler;
     private TwitterApiHandler twitterApiHandler;
+
+    private HashMap<SoloQueueGame, JSONObject> tweetedGames;
 
     private Logger logger;
 
@@ -48,129 +58,117 @@ public class LoLProTwitterBot {
     public LoLProTwitterBot(File playerRosterFile, File apiInfoFile, File logFile) throws JSONException, IOException {
         this.playerRosterFile = playerRosterFile;
         this.apiInfoFile = apiInfoFile;
-        this.logger = new Logger(logFile);
-        this.logger.open();
+
+        this.logger = Logger.getLogger("Logger");
+        FileHandler loggerFileHandler = new FileHandler(logFile.getAbsolutePath(), true);
+        this.logger.addHandler(loggerFileHandler);
+        loggerFileHandler.setFormatter(new SimpleFormatter());
+
+        this.logger.info("LoLProTwitterBot Created");
+
         this.league = new League(this.logger);
+
         this.readInApiFile();
+
+        this.logger.info("Api Info File read in successfully");
+
         this.riotApiHandler = new RiotApiHandler(this.getRiotApiKey(), this.getRiotRegion(), this.logger);
+        this.logger.info("RiotApiHandler Created");
+
         this.twitchApiHandler = new TwitchApiHandler(this.getTwitchClientId(), this.getTwitchClientSecret(),
                 this.logger);
+        this.logger.info("TwitchApiHandler Created");
+
         this.twitterApiHandler = new TwitterApiHandler(this.getTwitterConsumerKey(), this.getTwitterConsumerSecret(),
                 this.getTwitterToken(), this.getTwitterTokenSecret(), this.logger);
-        System.out.println("LCSTwitterBot Created");
+        this.logger.info("TwitterApiHandler Created");
+
+        this.tweetedGames = new HashMap<>();
     }
 
     /**
      * The method used for having the twitter bot start running.
      * 
+     * @param secondsToRun The amount of time in seconds you want the Twitter bot to
+     *                     run
      * @throws IOException If an input or output exception occurred
      */
-    public void run() throws IOException {
+    public void run(long secondsToRun) throws IOException {
 
         boolean runningFlag = true;
+        long startTime = (System.currentTimeMillis() / 1000);
+        long secondsRunning = 0;
 
-        this.logger.open();
-
-        if (runningFlag) {
-            if (this.riotApiHandler.isWorking()) {
-                System.out.println("RiotApiHandler is Working");
-            } else {
-                System.out.println("RiotApiHandler not Working");
-                runningFlag = false;
-            }
+        // Setup Tasks
+        if (!this.riotApiHandler.isWorking()) {
+            runningFlag = false;
+        }
+        if (!this.twitchApiHandler.loadToken()) {
+            runningFlag = false;
+        }
+        if (!this.league.loadPlayers(this.playerRosterFile)) {
+            runningFlag = false;
+        }
+        if (!this.league.loadPlayerSummonerIds(this.riotApiHandler)) {
+            runningFlag = false;
+        }
+        if (!this.twitchApiHandler.loadTwitchUserIds(this.league)) {
+            runningFlag = false;
         }
 
-        if (runningFlag) {
-            if (this.twitchApiHandler.loadToken()) {
-                System.out.println("Successfully retrieved token from Twitch Api");
-            } else {
-                System.out.println("Unsuccessfully retrieved token from Twitch Api");
-                runningFlag = false;
-            }
-        }
+        // main loop
+        while (runningFlag && (secondsRunning < secondsToRun)) {
 
-        if (runningFlag) {
-            if (this.league.loadPlayers(this.playerRosterFile)) {
-                System.out.println("Successfully loaded players from file");
-            } else {
-                System.out.println("Unsuccessfully loaded players from file");
-                runningFlag = false;
-            }
-        }
+            this.logger.info("Scanning for active solo queue games");
 
-        if (runningFlag) {
-            if (this.league.loadPlayerSummonerIds(this.riotApiHandler)) {
-                System.out.println("Successfully loaded player summoner ids from Riot Games Api");
-            } else {
-                System.out.println("Unsuccessfully loaded player summoner ids from Riot Games Api");
-                runningFlag = false;
-            }
-        }
-
-        if (runningFlag) {
-            if (this.twitchApiHandler.loadTwitchUserIds(this.league)) {
-                System.out.println("Successfully loaded twitch user ids from Twitch Api");
-            } else {
-                System.out.println("Unsuccessfully loaded twitch user ids from Twitch Api");
-                runningFlag = false;
-            }
-        }
-
-        if (runningFlag) {
             if (this.league.loadActiveSoloQueueGames(this.riotApiHandler)) {
-                System.out.println("Successfully loaded active solo queue games");
-            } else {
-                System.out.println("Unsuccessfully loaded active solo queue games");
-                runningFlag = false;
-            }
-        }
+                for (SoloQueueGame game : this.league.getActiveSoloQueueGames()) {
 
-        for (SoloQueueGame game : this.league.getActiveSoloQueueGames()) {
-            game.printGameInfo();
-            System.out.println("Streamers: ");
-
-            HashMap<Player, Integer> blueTeam = this.twitchApiHandler.getStreamersOnTeam(game.getBlueTeam(),
-                    game.getLeague());
-            System.out.println("\tBlue Team Streamers: ");
-            for (Player p : blueTeam.keySet()) {
-                if (p != null) {
-                    if (p.getTwitchUserId() != null) {
-                        System.out.println("\t\t" + p.getName() + " | " + p.getTwitchName() + " | "
-                                + p.getTwitchUserId() + " | Viewers " + blueTeam.get(p));
+                    SoloQueueTeam blueTeam = game.getBlueTeam();
+                    SoloQueueTeam redTeam = game.getRedTeam();
+                    HashMap<Player, Integer> blueTeamStreamers;
+                    HashMap<Player, Integer> redTeamStreamers;
+                    if (!blueTeam.getPlayers().isEmpty()) {
+                        blueTeamStreamers = this.twitchApiHandler.getStreamersOnTeam(game.getBlueTeam(),
+                                game.getLeague());
                     } else {
-                        System.out.println(
-                                "\t\t" + p.getName() + " | " + p.getTwitchName() + " | Viewers " + blueTeam.get(p));
+                        blueTeamStreamers = new HashMap<>();
+                    }
+                    if (!redTeam.getPlayers().isEmpty()) {
+                        redTeamStreamers = this.twitchApiHandler.getStreamersOnTeam(game.getRedTeam(),
+                                game.getLeague());
+                    } else {
+                        redTeamStreamers = new HashMap<>();
+                    }
+
+                    int gameScore = this.calculateGameScore(game, blueTeamStreamers, redTeamStreamers);
+
+                    if (gameScore >= MINIMUM_GAMESCORE_TO_TWEET && !gameAlreadyTweeted(game)) {
+                        JSONObject tweet = this.twitterApiHandler
+                                .tweet(createTweet(game, blueTeamStreamers, redTeamStreamers, gameScore));
+                        this.tweetedGames.put(game, tweet);
                     }
                 }
             }
 
-            HashMap<Player, Integer> redTeam = this.twitchApiHandler.getStreamersOnTeam(game.getRedTeam(),
-                    game.getLeague());
-            System.out.println("\tRed Team Streamers: ");
-            for (Player p : redTeam.keySet()) {
-                if (p != null) {
-                    if (p.getTwitchUserId() != null) {
-                        System.out.println("\t\t" + p.getName() + " | " + p.getTwitchName() + " | "
-                                + p.getTwitchUserId() + " | Viewers " + redTeam.get(p));
-                    } else {
-                        System.out.println(
-                                "\t\t" + p.getName() + " | " + p.getTwitchName() + " | Viewers " + redTeam.get(p));
-                    }
-                }
+            this.logger.info("Waiting " + (INTERVAL_TO_SCAN_ACTIVE_GAMES) + " seconds till next scan");
+
+            try {
+                Thread.sleep(INTERVAL_TO_SCAN_ACTIVE_GAMES * 1000);
+            } catch (InterruptedException e) {
+                this.logger.severe("InterruptedException");
+                this.preformClosingTasks();
+                System.exit(1);
             }
 
-            System.out.println("Game Score: " + this.calculateGameScore(game));
+            secondsRunning = (System.currentTimeMillis() / 1000) - startTime;
         }
 
-        if (runningFlag) {
-            if (this.twitchApiHandler.revokeToken()) {
-                System.out.println("Successfully revoked twitch api token");
-            } else {
-                System.out.println("Unsuccessfully revoked twitch api token");
-            }
-        }
+        this.logger.info("LoLProTwitterBot finished running after " + secondsRunning + " seconds");
 
-        this.logger.close();
+        // closing tasks
+        this.preformClosingTasks();
+
     }
 
     /**
@@ -270,73 +268,212 @@ public class LoLProTwitterBot {
      * @param gameToScore The game to score
      * @return An integer representing the "gamescore" value
      */
-    private int calculateGameScore(SoloQueueGame gameToScore) {
+    private int calculateGameScore(SoloQueueGame gameToScore, HashMap<Player, Integer> blueTeamStreamers,
+            HashMap<Player, Integer> redTeamStreamers) {
         SoloQueueTeam blueTeam = gameToScore.getBlueTeam();
         SoloQueueTeam redTeam = gameToScore.getRedTeam();
 
-        HashMap<Player, Integer> blueTeamStreamers = this.twitchApiHandler.getStreamersOnTeam(blueTeam,
-                gameToScore.getLeague());
-        HashMap<Player, Integer> redTeamStreamers = this.twitchApiHandler.getStreamersOnTeam(redTeam,
-                gameToScore.getLeague());
-
         int gameScore = 0;
 
-        int numberOfMainTeamPlayers = 0;
-        int numberOfAcademyPlayers = 0;
+        if (!blueTeamStreamers.isEmpty() || !redTeamStreamers.isEmpty()) {
+            int numberOfMainTeamPlayers = 0;
+            int numberOfAcademyPlayers = 0;
+            int heighestViewCount = 0;
 
-        for (Player player : blueTeam.getPlayers().keySet()) {
-            if (player != null) {
-                if (player.getTeam().contains("Academy") || player.getTeam().contains("academy")) {
-                    numberOfAcademyPlayers++;
-                } else {
-                    numberOfMainTeamPlayers++;
-                }
-            }
-        }
-        for (Player player : redTeam.getPlayers().keySet()) {
-            if (player != null) {
-                if (player.getTeam().contains("Academy") || player.getTeam().contains("academy")) {
-                    numberOfAcademyPlayers++;
-                } else {
-                    numberOfMainTeamPlayers++;
-                }
-            }
-        }
-
-        int heighestViewCount = 0;
-
-        for (Player player : blueTeamStreamers.keySet()) {
-            if (player != null) {
-                if (blueTeamStreamers.get(player) > 0) {
-                    if (blueTeamStreamers.get(player) > heighestViewCount) {
-                        heighestViewCount = blueTeamStreamers.get(player);
+            for (Player player : blueTeam.getPlayers().keySet()) {
+                if (player != null) {
+                    if (player.getTeam().contains("Academy") || player.getTeam().contains("academy")) {
+                        numberOfAcademyPlayers++;
+                    } else {
+                        numberOfMainTeamPlayers++;
                     }
                 }
             }
-        }
-
-        for (Player player : redTeamStreamers.keySet()) {
-            if (player != null) {
-                if (redTeamStreamers.get(player) > 0) {
-                    if (redTeamStreamers.get(player) > heighestViewCount) {
-                        heighestViewCount = redTeamStreamers.get(player);
+            for (Player player : redTeam.getPlayers().keySet()) {
+                if (player != null) {
+                    if (player.getTeam().contains("Academy") || player.getTeam().contains("academy")) {
+                        numberOfAcademyPlayers++;
+                    } else {
+                        numberOfMainTeamPlayers++;
                     }
                 }
             }
+            for (Player player : blueTeamStreamers.keySet()) {
+                if (player != null) {
+                    if (blueTeamStreamers.get(player) > 0) {
+                        if (blueTeamStreamers.get(player) > heighestViewCount) {
+                            heighestViewCount = blueTeamStreamers.get(player);
+                        }
+                    }
+                }
+            }
+            for (Player player : redTeamStreamers.keySet()) {
+                if (player != null) {
+                    if (redTeamStreamers.get(player) > 0) {
+                        if (redTeamStreamers.get(player) > heighestViewCount) {
+                            heighestViewCount = redTeamStreamers.get(player);
+                        }
+                    }
+                }
+            }
+
+            if (heighestViewCount > 0) {
+                gameScore = (1000 * numberOfMainTeamPlayers) + (500 * numberOfAcademyPlayers)
+                        + (int) (8.5 * Math.pow(heighestViewCount, 0.6));
+            }
         }
-
-        gameScore = (1000 * numberOfMainTeamPlayers) + (500 * numberOfAcademyPlayers) + (heighestViewCount);
-
-        System.out.println("Number of Main Team Players: " + numberOfMainTeamPlayers);
-        System.out.println("Number of Academy Team Players: " + numberOfAcademyPlayers);
-        System.out.println("Heighest View Count: " + heighestViewCount);
 
         return gameScore;
     }
 
-    private String createTweet(SoloQueueGame game) {
-        // TO BE IMPLEMENTED
-        return null;
+    /**
+     * Method to form a string containing information about the desired game to
+     * tweet about
+     * 
+     * @param gameToTweet       The game to tweet about
+     * @param blueTeamStreamers A HashMap with Players as the key and Integers and
+     *                          the value to represent streamers on the blue team
+     *                          and their viewcounts
+     * @param redTeamStreamers  A HashMap with Players as the key and Integers and
+     *                          the value to represent streamers on the red team and
+     *                          their viewcounts
+     * @return A String to be tweeted
+     */
+    private String createTweet(SoloQueueGame gameToTweet, HashMap<Player, Integer> blueTeamStreamers,
+            HashMap<Player, Integer> redTeamStreamers, int gameScore) {
+
+        SoloQueueTeam blueTeam = gameToTweet.getBlueTeam();
+        SoloQueueTeam redTeam = gameToTweet.getRedTeam();
+
+        String tweet = null;
+
+        Entry<Player, Integer> heighestViewCountStreamer = null;
+
+        for (Entry<Player, Integer> entry : blueTeamStreamers.entrySet()) {
+            if (entry.getKey() != null) {
+                if (heighestViewCountStreamer == null) {
+                    heighestViewCountStreamer = entry;
+                } else if (entry.getValue() > heighestViewCountStreamer.getValue()) {
+                    heighestViewCountStreamer = entry;
+                }
+            }
+        }
+
+        for (Entry<Player, Integer> entry : redTeamStreamers.entrySet()) {
+            if (entry.getKey() != null) {
+                if (heighestViewCountStreamer == null) {
+                    heighestViewCountStreamer = entry;
+                } else if (entry.getValue() > heighestViewCountStreamer.getValue()) {
+                    heighestViewCountStreamer = entry;
+                }
+            }
+        }
+
+        if (heighestViewCountStreamer != null) {
+            if (!heighestViewCountStreamer.getKey().getTwitterHandle().equals("")) {
+                tweet = "(" + gameScore + ") Watch @" + heighestViewCountStreamer.getKey().getTwitterHandle() + " ";
+            } else {
+                tweet = "(" + gameScore + ") Watch " + heighestViewCountStreamer.getKey().getName() + " ";
+            }
+
+            if (blueTeam.getPlayers().containsKey(heighestViewCountStreamer.getKey())) {
+
+                if (blueTeam.getPlayers().size() > 1) {
+                    tweet += "playing with ";
+                    for (Player player : blueTeam.getPlayers().keySet()) {
+                        if (player != null && player != heighestViewCountStreamer.getKey()) {
+                            if (!player.getTwitterHandle().equals("")) {
+                                tweet += "@" + player.getTwitterHandle() + ", ";
+                            } else {
+                                tweet += player.getName() + ", ";
+                            }
+                        }
+                    }
+                }
+
+                if (redTeam.getPlayers().size() > 0) {
+                    tweet += "against ";
+                    for (Player player : redTeam.getPlayers().keySet()) {
+                        if (player != null) {
+                            if (!player.getTwitterHandle().equals("")) {
+                                tweet += "@" + player.getTwitterHandle() + ", ";
+                            } else {
+                                tweet += player.getName() + ", ";
+                            }
+                        }
+                    }
+                }
+            } else {
+
+                if (redTeam.getPlayers().size() > 1) {
+                    tweet += "playing with ";
+                    for (Player player : redTeam.getPlayers().keySet()) {
+                        if (player != null && player != heighestViewCountStreamer.getKey()) {
+                            if (!player.getTwitterHandle().equals("")) {
+                                tweet += "@" + player.getTwitterHandle() + ", ";
+                            } else {
+                                tweet += player.getName() + ", ";
+                            }
+                        }
+                    }
+                }
+
+                if (blueTeam.getPlayers().size() > 0) {
+                    tweet += "against ";
+                    for (Player player : blueTeam.getPlayers().keySet()) {
+                        if (player != null) {
+                            if (!player.getTwitterHandle().equals("")) {
+                                tweet += "@" + player.getTwitterHandle() + ", ";
+                            } else {
+                                tweet += player.getName() + ", ";
+                            }
+                        }
+                    }
+                }
+            }
+
+            tweet += "here: https://www.twitch.tv/" + heighestViewCountStreamer.getKey().getTwitchName();
+        }
+
+        return tweet;
+    }
+
+    /**
+     * Function to check if a game has already been tweeted so duplicate tweets are
+     * not made.
+     * 
+     * @param gameToCheck The game to check if it has been tweeted
+     * @return True if the game has been tweeted and false otherwise
+     */
+    private boolean gameAlreadyTweeted(SoloQueueGame gameToCheck) {
+        for (SoloQueueGame game : this.tweetedGames.keySet()) {
+            if (game != null) {
+                if (game.getGameId() == gameToCheck.getGameId()) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
+    /**
+     * Method to close the logger and revoke the twitch authentication token when
+     * closing the program.
+     * 
+     * @return True if closing tasks preformed successfully and false otherwise
+     */
+    private boolean preformClosingTasks() {
+        try {
+            this.logger.info("Closing Logger");
+            for (Handler handler : this.logger.getHandlers()) {
+                handler.close();
+            }
+            this.twitchApiHandler.revokeToken();
+            return true;
+        } catch (Exception e) {
+            return false;
+        }
+
     }
 
 }

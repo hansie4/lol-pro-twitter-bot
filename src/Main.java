@@ -4,7 +4,7 @@ import com.hansvg.lolprotwitterbot.LoLProTwitterBot;
 
 public class Main {
 
-    private static final String playerRosterFilePath = "data\\LoL_Roster_Summer_2020 - NA.csv";
+    private static final String playerRosterFilePath = "data\\LoL_Pro_Roster - NA_Summer_2020.csv";
     private static final String riotInfoFilePath = "data\\ApiInfo.json";
     private static final String logFilePath = "data\\LolProTwitterBot.log";
 
@@ -13,7 +13,7 @@ public class Main {
         try {
             LoLProTwitterBot lolProTwitterBot = new LoLProTwitterBot(new File(playerRosterFilePath),
                     new File(riotInfoFilePath), new File(logFilePath));
-            lolProTwitterBot.run();
+            lolProTwitterBot.run(420);
         } catch (Exception e) {
             System.out.println(e);
         }

@@ -100,19 +100,7 @@ public class LoLProTwitterBot {
         long secondsRunning = 0;
 
         // Setup Tasks
-        if (!this.riotApiHandler.isWorking()) {
-            runningFlag = false;
-        }
-        if (!this.twitchApiHandler.loadToken()) {
-            runningFlag = false;
-        }
-        if (!this.league.loadPlayers(this.playerRosterFile)) {
-            runningFlag = false;
-        }
-        if (!this.league.loadPlayerSummonerIds(this.riotApiHandler)) {
-            runningFlag = false;
-        }
-        if (!this.twitchApiHandler.loadTwitchUserIds(this.league)) {
+        if (!preformSetupTasks()) {
             runningFlag = false;
         }
 
@@ -454,6 +442,25 @@ public class LoLProTwitterBot {
             }
         }
         return false;
+    }
+
+    private boolean preformSetupTasks() {
+        if (!this.riotApiHandler.isWorking()) {
+            return false;
+        }
+        if (!this.twitchApiHandler.loadToken()) {
+            return false;
+        }
+        if (!this.league.loadPlayers(this.playerRosterFile)) {
+            return false;
+        }
+        if (!this.league.loadPlayerSummonerIds(this.riotApiHandler)) {
+            return false;
+        }
+        if (!this.twitchApiHandler.loadTwitchUserIds(this.league)) {
+            return false;
+        }
+        return true;
     }
 
     /**

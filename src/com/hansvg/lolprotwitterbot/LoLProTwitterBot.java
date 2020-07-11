@@ -125,8 +125,8 @@ public class LoLProTwitterBot {
                     }
 
                     int gameScore = this.calculateGameScore(game, blueTeamStreamers, redTeamStreamers);
-                    System.out.println("GameScore: " + gameScore);
-                    game.printGameInfo();
+                    System.out.println("-----------------------GameScore: " + gameScore + "-----------------------");
+                    game.printGameInfo(blueTeamStreamers, redTeamStreamers);
 
                     if (gameScore >= MINIMUM_GAMESCORE_TO_TWEET && !gameAlreadyTweeted(game)) {
                         JSONObject tweet = this.twitterApiHandler

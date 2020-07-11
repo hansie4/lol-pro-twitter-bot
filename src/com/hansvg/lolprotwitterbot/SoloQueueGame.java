@@ -7,6 +7,8 @@
 package com.hansvg.lolprotwitterbot;
 
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map.Entry;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -173,8 +175,13 @@ class SoloQueueGame {
 
     /**
      * Utility function to print out the values of the game.
+     * 
+     * @param blueTeamStreamers HashMap of streamers and viewcounts for the blue
+     *                          team
+     * @param redTeamStreamers  HashMap of streamers and viewcounts for the red team
      */
-    protected void printGameInfo() {
+    protected void printGameInfo(HashMap<Player, Integer> blueTeamStreamers,
+            HashMap<Player, Integer> redTeamStreamers) {
         System.out.println("--------Game Info for Game ID: " + this.gameId + "--------");
         System.out.println("Map ID: " + this.mapId);
         System.out.println("Game Type: " + this.gameType);
@@ -193,6 +200,16 @@ class SoloQueueGame {
         System.out.println("Red Side:");
         for (Player player : this.redTeam.getPlayers().keySet()) {
             System.out.println("\t" + player.getName());
+        }
+
+        System.out.println("-------------------------------------------------");
+
+        System.out.println("Streamers: ");
+        for (Entry<Player, Integer> streamer : blueTeamStreamers.entrySet()) {
+            System.out.println("\t" + streamer.getKey().getName() + "\tViewers: " + streamer.getValue());
+        }
+        for (Entry<Player, Integer> streamer : redTeamStreamers.entrySet()) {
+            System.out.println("\t" + streamer.getKey().getName() + "\tViewers: " + streamer.getValue());
         }
 
         System.out.println("-------------------------------------------------");

@@ -10,80 +10,75 @@
 package com.hansvg.lolprotwitterbot;
 
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.HashMap;
-import java.util.Scanner;
+import java.util.Properties;
 import java.util.Map.Entry;
 import java.util.logging.FileHandler;
 import java.util.logging.Handler;
 import java.util.logging.Logger;
 import java.util.logging.SimpleFormatter;
 
-import org.json.JSONException;
 import org.json.JSONObject;
 
 public class LoLProTwitterBot {
 
-    private final int MINIMUM_GAMESCORE_TO_TWEET = 5000;
-    private final int INTERVAL_TO_SCAN_ACTIVE_GAMES = 480;
+    private Properties configs;
+
+    private int MINIMUM_GAMESCORE_TO_TWEET;
+    private int INTERVAL_TO_SCAN_ACTIVE_GAMES_IN_SECONDS;
 
     private File playerRosterFile;
-    private File apiInfoFile;
 
     private League league;
-
-    private JSONObject apiInfoJSON;
 
     private RiotApiHandler riotApiHandler;
     private TwitchApiHandler twitchApiHandler;
     private TwitterApiHandler twitterApiHandler;
 
-    private HashMap<SoloQueueGame, JSONObject> tweetedGames;
-
     private Logger logger;
+
+    private HashMap<SoloQueueGame, JSONObject> tweetedGames;
 
     /**
      * LCSTwitterBot Class Constructor.
      * 
-     * @param playerRosterFile .csv file containg the players to track and their
-     *                         information
-     * @param apiInfoFile      .json file containing information needed to access
-     *                         the Riot Games, Twitter, and Twitch API's
-     * @param logFile          .log file the user wants to have the logs of the
-     *                         twitter bot written too
-     * @throws JSONException If an exception occured reading .json
-     * @throws IOException   If an input or output exception occurred
+     * @param configFileLocation The location of the file containing the configs for
+     *                           the twitter bot
+     * @throws Exception
+     * @throws NumberFormatException
      */
-    public LoLProTwitterBot(File playerRosterFile, File apiInfoFile, File logFile) throws JSONException, IOException {
-        this.playerRosterFile = playerRosterFile;
-        this.apiInfoFile = apiInfoFile;
+    public LoLProTwitterBot(String configFileLocation) throws NumberFormatException, Exception {
+        if (loadConfigs(configFileLocation)) {
+            this.logger = Logger.getLogger("Logger");
+            FileHandler loggerFileHandler = new FileHandler(this.configs.getProperty("LOCATION_FOR_LOG_FILE"), true);
+            this.logger.addHandler(loggerFileHandler);
+            loggerFileHandler.setFormatter(new SimpleFormatter());
 
-        this.logger = Logger.getLogger("Logger");
-        FileHandler loggerFileHandler = new FileHandler(logFile.getAbsolutePath(), true);
-        this.logger.addHandler(loggerFileHandler);
-        loggerFileHandler.setFormatter(new SimpleFormatter());
+            this.MINIMUM_GAMESCORE_TO_TWEET = Integer.parseInt(this.configs.getProperty("MINIMUM_GAMESCORE_TO_TWEET"));
+            this.INTERVAL_TO_SCAN_ACTIVE_GAMES_IN_SECONDS = Integer
+                    .parseInt(this.configs.getProperty("INTERVAL_TO_SCAN_ACTIVE_GAMES_IN_SECONDS"));
 
-        this.logger.info("LoLProTwitterBot Created");
+            this.playerRosterFile = new File(this.configs.getProperty("PLAYER_ROSTER_FILE_LOCATION"));
 
-        this.league = new League(this.logger);
+            this.league = new League(this.logger);
 
-        this.readInApiFile();
+            this.riotApiHandler = new RiotApiHandler(this.configs, this.logger);
+            this.logger.info("RiotApiHandler Created");
 
-        this.logger.info("Api Info File read in successfully");
+            this.twitchApiHandler = new TwitchApiHandler(this.configs, this.logger);
+            this.logger.info("TwitchApiHandler Created");
 
-        this.riotApiHandler = new RiotApiHandler(this.getRiotApiKey(), this.getRiotRegion(), this.logger);
-        this.logger.info("RiotApiHandler Created");
+            this.twitterApiHandler = new TwitterApiHandler(this.configs, this.logger);
+            this.logger.info("TwitterApiHandler Created");
 
-        this.twitchApiHandler = new TwitchApiHandler(this.getTwitchClientId(), this.getTwitchClientSecret(),
-                this.logger);
-        this.logger.info("TwitchApiHandler Created");
-
-        this.twitterApiHandler = new TwitterApiHandler(this.getTwitterConsumerKey(), this.getTwitterConsumerSecret(),
-                this.getTwitterToken(), this.getTwitterTokenSecret(), this.logger);
-        this.logger.info("TwitterApiHandler Created");
-
-        this.tweetedGames = new HashMap<>();
+            this.tweetedGames = new HashMap<>();
+        } else {
+            System.out.println("Configs could not be loaded. Closing LoLProTwitterBot.");
+            System.exit(1);
+        }
     }
 
     /**
@@ -130,6 +125,8 @@ public class LoLProTwitterBot {
                     }
 
                     int gameScore = this.calculateGameScore(game, blueTeamStreamers, redTeamStreamers);
+                    System.out.println("GameScore: " + gameScore);
+                    game.printGameInfo();
 
                     if (gameScore >= MINIMUM_GAMESCORE_TO_TWEET && !gameAlreadyTweeted(game)) {
                         JSONObject tweet = this.twitterApiHandler
@@ -139,10 +136,10 @@ public class LoLProTwitterBot {
                 }
             }
 
-            this.logger.info("Waiting " + (INTERVAL_TO_SCAN_ACTIVE_GAMES) + " seconds till next scan");
+            this.logger.info("Waiting " + (INTERVAL_TO_SCAN_ACTIVE_GAMES_IN_SECONDS) + " seconds till next scan");
 
             try {
-                Thread.sleep(INTERVAL_TO_SCAN_ACTIVE_GAMES * 1000);
+                Thread.sleep(INTERVAL_TO_SCAN_ACTIVE_GAMES_IN_SECONDS * 1000);
             } catch (InterruptedException e) {
                 this.logger.severe("InterruptedException");
                 this.preformClosingTasks();
@@ -160,100 +157,53 @@ public class LoLProTwitterBot {
     }
 
     /**
-     * Reads in the json from the apiFile that was passed in to the constructor and
-     * sets the apiInfoJSON object to a JSONObject of the contents of the file.
+     * Function to load the configs for the twitter bot.
      * 
-     * @throws FileNotFoundException If the apiInfoFile could not be found
+     * @param configFileLocation The location of the file containing the configs
+     * @return True if configs were successfully retrieved.
      */
-    private void readInApiFile() throws FileNotFoundException {
-        Scanner fileScanner = new Scanner(this.apiInfoFile);
-        String fileContents = "";
+    private boolean loadConfigs(String configFileLocation) {
+        try {
+            Properties properties = new Properties();
+            FileInputStream fileInputStream = new FileInputStream(configFileLocation);
 
-        while (fileScanner.hasNext()) {
-            fileContents += fileScanner.next();
+            properties.load(fileInputStream);
+
+            if (properties.containsKey("LOCATION_FOR_LOG_FILE") && properties.containsKey("PLAYER_ROSTER_FILE_LOCATION")
+                    && properties.containsKey("RIOT_API_KEY") && properties.containsKey("RIOT_API_REGION")
+                    && properties.containsKey("TWITCH_CLIENT_ID") && properties.containsKey("TWITCH_CLIENT_SECRET")
+                    && properties.containsKey("TWITTER_CONSUMER_KEY")
+                    && properties.containsKey("TWITTER_CONSUMER_SECRET")
+                    && properties.containsKey("TWITTER_ACCESS_TOKEN")
+                    && properties.containsKey("TWITTER_ACCESS_TOKEN_SECRET")
+                    && properties.containsKey("SECONDS_TO_RUN_BOT")
+                    && properties.containsKey("MINIMUM_GAMESCORE_TO_TWEET")
+                    && properties.containsKey("INTERVAL_TO_SCAN_ACTIVE_GAMES_IN_SECONDS")
+                    && properties.containsKey("SECONDS_TO_WAIT_AFTER_RATE_LIMIT_REACHED_RIOT_API")
+                    && properties.containsKey("SECONDS_TO_WAIT_AFTER_RATE_LIMIT_REACHED_TWITCH_API")
+                    && properties.containsKey("SECONDS_TO_WAIT_AFTER_RATE_LIMIT_REACHED_TWITTER_API")) {
+                this.configs = properties;
+                return true;
+            } else {
+                System.out.println("Invalid config file.");
+                return false;
+            }
+        } catch (FileNotFoundException e) {
+            System.out.println("The file \"" + configFileLocation + "\" could not be found.");
+            return false;
+        } catch (IOException e) {
+            System.out.println("Error reading the file.");
+            return false;
         }
-
-        fileScanner.close();
-        this.apiInfoJSON = new JSONObject(fileContents);
-    }
-
-    /**
-     * Returns the value attached to the "riotApiKey" key in apiInfoJSON
-     * 
-     * @return The api key for the Riot Games API
-     */
-    private String getRiotApiKey() {
-        return this.apiInfoJSON.get("riotApiKey").toString();
-    }
-
-    /**
-     * Returns the value attached to the "riotRegion" key in apiInfoJSON
-     * 
-     * @return The region that the Riot Games API should make calls to
-     */
-    private String getRiotRegion() {
-        return this.apiInfoJSON.get("riotRegion").toString();
-    }
-
-    /**
-     * Returns the value attached to the "twitchClientId" key in apiInfoJSON
-     * 
-     * @return The twitch client id for this app
-     */
-    private String getTwitchClientId() {
-        return this.apiInfoJSON.get("twitchClientId").toString();
-    }
-
-    /**
-     * Returns the value attached to the "twitchClientSecret" key in apiInfoJSON
-     * 
-     * @return The twitch client secret for authentication
-     */
-    private String getTwitchClientSecret() {
-        return this.apiInfoJSON.get("twitchClientSecret").toString();
-    }
-
-    /**
-     * Returns the value attached to the "twitterConsumerKey" key in apiInfoJSON
-     * 
-     * @return The twitter consumer api key
-     */
-    private String getTwitterConsumerKey() {
-        return this.apiInfoJSON.getString("twitterConsumerKey").toString();
-    }
-
-    /**
-     * Returns the value attached to the "twitterConsumerSecret" key in apiInfoJSON
-     * 
-     * @return The twitter consumer secret
-     */
-    private String getTwitterConsumerSecret() {
-        return this.apiInfoJSON.getString("twitterConsumerSecret").toString();
-    }
-
-    /**
-     * Returns the value attached to the "twitterToken" key in apiInfoJSON
-     * 
-     * @return The twitter access token
-     */
-    private String getTwitterToken() {
-        return this.apiInfoJSON.getString("twitterToken").toString();
-    }
-
-    /**
-     * Returns the value attached to the "twitterTokenSecret" key in apiInfoJSON
-     * 
-     * @return The twitter access token secret
-     */
-    private String getTwitterTokenSecret() {
-        return this.apiInfoJSON.getString("twitterTokenSecret").toString();
     }
 
     /**
      * Method to calculate a "gamescore" value for the passed in game to determine
      * how entertaining the game would be to watch
      * 
-     * @param gameToScore The game to score
+     * @param gameToScore       The game to score
+     * @param blueTeamStreamers HashMap of streamers and view counts on blue team
+     * @param redTeamStreamers  HashMap of streamers and view counts on red team
      * @return An integer representing the "gamescore" value
      */
     private int calculateGameScore(SoloQueueGame gameToScore, HashMap<Player, Integer> blueTeamStreamers,
@@ -323,6 +273,7 @@ public class LoLProTwitterBot {
      * @param redTeamStreamers  A HashMap with Players as the key and Integers and
      *                          the value to represent streamers on the red team and
      *                          their viewcounts
+     * @param gameScore         The "gameScore" of the game being tweeted
      * @return A String to be tweeted
      */
     private String createTweet(SoloQueueGame gameToTweet, HashMap<Player, Integer> blueTeamStreamers,
@@ -442,6 +393,12 @@ public class LoLProTwitterBot {
         return false;
     }
 
+    /**
+     * Method to check to make sure that all is loaded and all Api handlers are
+     * working.
+     * 
+     * @return True if all tasks were preformed successfully and false otherwises
+     */
     private boolean preformSetupTasks() {
         if (!this.riotApiHandler.isWorking()) {
             return false;
@@ -469,11 +426,11 @@ public class LoLProTwitterBot {
      */
     private boolean preformClosingTasks() {
         try {
+            this.twitchApiHandler.revokeToken();
             this.logger.info("Closing Logger");
             for (Handler handler : this.logger.getHandlers()) {
                 handler.close();
             }
-            this.twitchApiHandler.revokeToken();
             return true;
         } catch (Exception e) {
             return false;

@@ -16,6 +16,7 @@ import java.net.http.HttpRequest.BodyPublishers;
 import java.net.http.HttpResponse.BodyHandlers;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Properties;
 import java.util.logging.Logger;
 
 import org.json.JSONArray;
@@ -24,25 +25,46 @@ import org.json.JSONObject;
 class TwitchApiHandler {
 
     private final int MAX_DISPLAYNAMES_PER_CALL = 100;
-    private final int SECONDS_TO_WAIT_BETWEEN_CALLS = 10;
+
     private HttpClient httpClient;
-    private String clientId;
-    private String clientSecret;
-    private String authToken = null;
     private Logger logger;
+
+    private int SECONDS_TO_WAIT_AFTER_RATE_LIMIT_REACHED;
+    private String TWITCH_CLIENT_ID;
+    private String TWITCH_CLIENT_SECRET;
+
+    private String authToken = null;
 
     /**
      * TwitchApiHandler class constructor.
      * 
-     * @param clientId     The client id for the twitch api
-     * @param clientSecret The client secret for the twitch api
-     * @param logger       The logger object to log what happens in the program
+     * @param configs The configs for the twitter bot
+     * @param logger  The logger object to log what happens in the program
+     * @throws Exception
      */
-    protected TwitchApiHandler(String clientId, String clientSecret, Logger logger) {
+    protected TwitchApiHandler(Properties configs, Logger logger) throws NumberFormatException, Exception {
         this.httpClient = HttpClient.newHttpClient();
-        this.clientId = clientId;
-        this.clientSecret = clientSecret;
         this.logger = logger;
+
+        this.SECONDS_TO_WAIT_AFTER_RATE_LIMIT_REACHED = Integer
+                .parseInt(configs.getProperty("SECONDS_TO_WAIT_AFTER_RATE_LIMIT_REACHED_TWITCH_API"));
+        if (this.SECONDS_TO_WAIT_AFTER_RATE_LIMIT_REACHED < 5) {
+            this.logger
+                    .severe("Invalid Integer for SECONDS_TO_WAIT_AFTER_RATE_LIMIT_REACHED_TWITCH_API in config file.");
+            throw new Exception();
+        }
+
+        this.TWITCH_CLIENT_ID = configs.getProperty("TWITCH_CLIENT_ID");
+        if (this.TWITCH_CLIENT_ID == null) {
+            this.logger.severe("NULL Twitch client id in config file.");
+            throw new Exception();
+        }
+
+        this.TWITCH_CLIENT_SECRET = configs.getProperty("TWITCH_CLIENT_SECRET");
+        if (this.TWITCH_CLIENT_SECRET == null) {
+            this.logger.severe("NULL Twitch client secret in config file.");
+            throw new Exception();
+        }
     }
 
     /**
@@ -54,8 +76,8 @@ class TwitchApiHandler {
     protected boolean loadToken() {
         try {
             HttpRequest request = HttpRequest.newBuilder()
-                    .uri(new URI("https://id.twitch.tv/oauth2/token?client_id=" + this.clientId + "&client_secret="
-                            + this.clientSecret + "&grant_type=client_credentials"))
+                    .uri(new URI("https://id.twitch.tv/oauth2/token?client_id=" + this.TWITCH_CLIENT_ID
+                            + "&client_secret=" + this.TWITCH_CLIENT_SECRET + "&grant_type=client_credentials"))
                     .POST(BodyPublishers.ofString("")).build();
 
             HttpResponse<String> response = httpClient.send(request, BodyHandlers.ofString());
@@ -71,9 +93,9 @@ class TwitchApiHandler {
                 return true;
             } else if (response.statusCode() == 429) {
                 // LOG
-                this.logger.warning("Twitch Api Rate Limit reached. Retrying after " + (SECONDS_TO_WAIT_BETWEEN_CALLS)
-                        + " seconds");
-                Thread.sleep(1000 * SECONDS_TO_WAIT_BETWEEN_CALLS);
+                this.logger.warning("Twitch Api Rate Limit reached. Retrying after "
+                        + (SECONDS_TO_WAIT_AFTER_RATE_LIMIT_REACHED) + " seconds");
+                Thread.sleep(1000 * SECONDS_TO_WAIT_AFTER_RATE_LIMIT_REACHED);
                 return this.loadToken();
             } else {
                 // LOG
@@ -103,9 +125,8 @@ class TwitchApiHandler {
      */
     protected boolean revokeToken() {
         try {
-            HttpRequest request = HttpRequest.newBuilder().uri(new URI(
-                    "https://id.twitch.tv/oauth2/revoke?client_id=" + this.clientId + "&token=" + this.authToken))
-                    .POST(BodyPublishers.ofString("")).build();
+            HttpRequest request = HttpRequest.newBuilder().uri(new URI("https://id.twitch.tv/oauth2/revoke?client_id="
+                    + this.TWITCH_CLIENT_ID + "&token=" + this.authToken)).POST(BodyPublishers.ofString("")).build();
 
             HttpResponse<String> response = httpClient.send(request, BodyHandlers.ofString());
 
@@ -117,9 +138,9 @@ class TwitchApiHandler {
                 return true;
             } else if (response.statusCode() == 429) {
                 // LOG
-                this.logger.warning("Twitch Api Rate Limit reached. Retrying after " + (SECONDS_TO_WAIT_BETWEEN_CALLS)
-                        + " seconds");
-                Thread.sleep(1000 * SECONDS_TO_WAIT_BETWEEN_CALLS);
+                this.logger.warning("Twitch Api Rate Limit reached. Retrying after "
+                        + (SECONDS_TO_WAIT_AFTER_RATE_LIMIT_REACHED) + " seconds");
+                Thread.sleep(1000 * SECONDS_TO_WAIT_AFTER_RATE_LIMIT_REACHED);
                 return this.revokeToken();
             } else {
                 // LOG
@@ -157,7 +178,8 @@ class TwitchApiHandler {
 
                 HttpRequest request = HttpRequest.newBuilder().GET()
                         .uri(new URI(createGetUserURI(blocksOfPlayers.get(currentBlockOfPlayersIndex))))
-                        .header("Client-ID", this.clientId).header("Authorization", "Bearer " + this.authToken).build();
+                        .header("Client-ID", this.TWITCH_CLIENT_ID).header("Authorization", "Bearer " + this.authToken)
+                        .build();
                 HttpResponse<String> response = httpClient.send(request, BodyHandlers.ofString());
 
                 if (response.statusCode() == 200 || response.statusCode() == 404) {
@@ -179,9 +201,9 @@ class TwitchApiHandler {
                 } else if (response.statusCode() == 429) {
                     // LOG
                     this.logger.warning("Twitch Api Rate Limit reached. Retrying after "
-                            + (SECONDS_TO_WAIT_BETWEEN_CALLS) + " seconds");
+                            + (SECONDS_TO_WAIT_AFTER_RATE_LIMIT_REACHED) + " seconds");
                     currentBlockOfPlayersIndex--;
-                    Thread.sleep(1000 * SECONDS_TO_WAIT_BETWEEN_CALLS);
+                    Thread.sleep(1000 * SECONDS_TO_WAIT_AFTER_RATE_LIMIT_REACHED);
                 } else {
                     // LOG
                     this.logger.warning(
@@ -219,8 +241,9 @@ class TwitchApiHandler {
 
             URI requestURI = new URI(createTeamStreamRequestURI(team));
 
-            HttpRequest request = HttpRequest.newBuilder().GET().uri(requestURI).header("Client-ID", this.clientId)
-                    .header("Authorization", "Bearer " + this.authToken).build();
+            HttpRequest request = HttpRequest.newBuilder().GET().uri(requestURI)
+                    .header("Client-ID", this.TWITCH_CLIENT_ID).header("Authorization", "Bearer " + this.authToken)
+                    .build();
 
             HttpResponse<String> response = httpClient.send(request, BodyHandlers.ofString());
 
@@ -244,9 +267,9 @@ class TwitchApiHandler {
                 }
             } else if (response.statusCode() == 429) {
                 // LOG
-                this.logger.warning("Twitch Api Rate Limit reached. Retrying after " + (SECONDS_TO_WAIT_BETWEEN_CALLS)
-                        + " seconds");
-                Thread.sleep(1000 * SECONDS_TO_WAIT_BETWEEN_CALLS);
+                this.logger.warning("Twitch Api Rate Limit reached. Retrying after "
+                        + (SECONDS_TO_WAIT_AFTER_RATE_LIMIT_REACHED) + " seconds");
+                Thread.sleep(1000 * SECONDS_TO_WAIT_AFTER_RATE_LIMIT_REACHED);
                 return getStreamersOnTeam(team, league);
             } else {
                 // LOG

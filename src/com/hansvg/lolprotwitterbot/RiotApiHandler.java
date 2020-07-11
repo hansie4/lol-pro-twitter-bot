@@ -14,30 +14,49 @@ import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.net.http.HttpResponse.BodyHandlers;
 import java.util.ArrayList;
+import java.util.Properties;
 import java.util.logging.Logger;
 
 import org.json.JSONObject;
 
 class RiotApiHandler {
 
-    private final int SECONDS_TO_WAIT_BETWEEN_CALLS = 30;
     private HttpClient httpClient;
-    private String apiKey;
-    private String region;
     private Logger logger;
+
+    private int SECONDS_TO_WAIT_AFTER_RATE_LIMIT_REACHED;
+    private String RIOT_API_KEY;
+    private String RIOT_REGION;
 
     /**
      * RiotApiHandler Class Constructor.
      * 
-     * @param apiKey The api key for the Riot Games API to authenticate this app
-     * @param region The region to make api calls to
-     * @param logger The Logger object to log the processes
+     * @param configs The configs for the twitter bot
+     * @param logger  The Logger object to log the processes
+     * @throws Exception
      */
-    protected RiotApiHandler(String apiKey, String region, Logger logger) {
+    protected RiotApiHandler(Properties configs, Logger logger) throws NumberFormatException, Exception {
         httpClient = HttpClient.newHttpClient();
-        this.apiKey = apiKey;
-        this.region = region;
         this.logger = logger;
+
+        this.SECONDS_TO_WAIT_AFTER_RATE_LIMIT_REACHED = Integer
+                .parseInt(configs.getProperty("SECONDS_TO_WAIT_AFTER_RATE_LIMIT_REACHED_RIOT_API", "30"));
+        if (this.SECONDS_TO_WAIT_AFTER_RATE_LIMIT_REACHED < 5) {
+            this.logger.severe("Invalid Integer for SECONDS_TO_WAIT_AFTER_RATE_LIMIT_REACHED_RIOT_API in config file.");
+            throw new Exception();
+        }
+
+        this.RIOT_API_KEY = configs.getProperty("RIOT_API_KEY");
+        if (this.RIOT_API_KEY == null) {
+            this.logger.severe("NULL Riot Api key in config file.");
+            throw new Exception();
+        }
+
+        this.RIOT_REGION = configs.getProperty("RIOT_API_REGION");
+        if (this.RIOT_REGION == null) {
+            this.logger.severe("NULL Riot Region key in config file.");
+            throw new Exception();
+        }
     }
 
     /**
@@ -48,10 +67,11 @@ class RiotApiHandler {
      */
     protected boolean isWorking() {
         try {
-            URI requestURI = new URI("https://" + region + ".api.riotgames.com/lol/summoner/v4/summoners/by-name/"
-                    + summonerNameNoSpaces("Hansie"));
+            URI requestURI = new URI("https://" + this.RIOT_REGION
+                    + ".api.riotgames.com/lol/summoner/v4/summoners/by-name/" + summonerNameNoSpaces("Hansie"));
 
-            HttpRequest request = HttpRequest.newBuilder().uri(requestURI).header("X-Riot-Token", this.apiKey).build();
+            HttpRequest request = HttpRequest.newBuilder().uri(requestURI).header("X-Riot-Token", this.RIOT_API_KEY)
+                    .build();
 
             HttpResponse<String> response = this.httpClient.send(request, BodyHandlers.ofString());
 
@@ -97,9 +117,10 @@ class RiotApiHandler {
                     .getSummonerNames().length; currentSummonerIndex++) {
                 String currentSummonerName = (currentPlayer.getSummonerNames())[currentSummonerIndex];
 
-                URI uri = new URI("https://" + region + ".api.riotgames.com/lol/summoner/v4/summoners/by-name/"
-                        + summonerNameNoSpaces(currentSummonerName));
-                HttpRequest request = HttpRequest.newBuilder().GET().uri(uri).header("X-Riot-Token", this.apiKey)
+                URI uri = new URI(
+                        "https://" + this.RIOT_REGION + ".api.riotgames.com/lol/summoner/v4/summoners/by-name/"
+                                + summonerNameNoSpaces(currentSummonerName));
+                HttpRequest request = HttpRequest.newBuilder().GET().uri(uri).header("X-Riot-Token", this.RIOT_API_KEY)
                         .build();
 
                 HttpResponse<String> response = this.httpClient.send(request, BodyHandlers.ofString());
@@ -119,9 +140,9 @@ class RiotApiHandler {
                     // rate limit reached
                     // LOG
                     this.logger.warning("Riot Games Api Rate Limit Reached. Retrying after "
-                            + (SECONDS_TO_WAIT_BETWEEN_CALLS) + " seconds");
+                            + (SECONDS_TO_WAIT_AFTER_RATE_LIMIT_REACHED) + " seconds");
                     currentSummonerIndex--;
-                    Thread.sleep(1000 * SECONDS_TO_WAIT_BETWEEN_CALLS);
+                    Thread.sleep(1000 * SECONDS_TO_WAIT_AFTER_RATE_LIMIT_REACHED);
                 } else {
                     // error with getting information from api
                     currentPlayer.getSummonerIds()[currentSummonerIndex] = null;
@@ -175,9 +196,10 @@ class RiotApiHandler {
 
         while (summonerIds.size() > 0) {
 
-            URI uri = new URI("https://" + region + ".api.riotgames.com/lol/spectator/v4/active-games/by-summoner/"
-                    + summonerIds.get(0));
-            HttpRequest request = HttpRequest.newBuilder().GET().uri(uri).header("X-Riot-Token", this.apiKey).build();
+            URI uri = new URI("https://" + this.RIOT_REGION
+                    + ".api.riotgames.com/lol/spectator/v4/active-games/by-summoner/" + summonerIds.get(0));
+            HttpRequest request = HttpRequest.newBuilder().GET().uri(uri).header("X-Riot-Token", this.RIOT_API_KEY)
+                    .build();
 
             HttpResponse<String> response = this.httpClient.send(request, BodyHandlers.ofString());
 
@@ -193,8 +215,8 @@ class RiotApiHandler {
                 // rate limit reached
                 // LOG
                 this.logger.warning("Riot Games Api Rate Limit Reached. Retrying after "
-                        + (SECONDS_TO_WAIT_BETWEEN_CALLS) + " seconds");
-                Thread.sleep(1000 * SECONDS_TO_WAIT_BETWEEN_CALLS);
+                        + (SECONDS_TO_WAIT_AFTER_RATE_LIMIT_REACHED) + " seconds");
+                Thread.sleep(1000 * SECONDS_TO_WAIT_AFTER_RATE_LIMIT_REACHED);
             } else {
                 // error with getting information from api
                 summonerIds.remove(0);

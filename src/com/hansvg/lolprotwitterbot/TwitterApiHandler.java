@@ -19,6 +19,7 @@ import java.nio.charset.StandardCharsets;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 import java.util.Base64;
+import java.util.Properties;
 import java.util.logging.Logger;
 
 import javax.crypto.Mac;
@@ -28,35 +29,62 @@ import org.json.JSONObject;
 
 class TwitterApiHandler {
 
-    private final int SECONDS_TO_WAIT_BETWEEN_CALLS = 10;
     private final String ALPHA_CHARACTERS = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
     private final String oauth_signature_method = "HMAC-SHA1";
     private final String oauth_version = "1.0";
-    private String oauth_consumer_key;
-    private String oauth_consumer_secret;
-    private String oauth_token;
-    private String oauth_token_secret;
+
     private HttpClient httpClient;
     private Logger logger;
+
+    private int SECONDS_TO_WAIT_AFTER_RATE_LIMIT_REACHED;
+
+    private String OAUTH_CONSUMER_KEY;
+    private String OAUTH_CONSUMER_SECRET;
+    private String OAUTH_TOKEN;
+    private String OAUTH_TOKEN_SECRET;
 
     /**
      * TwitterApiHandler class constructor.
      * 
-     * @param oauth_consumer_key    Consumer api key for Twitter api
-     * @param oauth_consumer_secret Consumer api secret for Twitter api
-     * @param oauth_token           Access token for Twitter api
-     * @param oauth_token_secret    Access token secret for Twitter api
-     * @param logger                The logger object to log what happens in the
-     *                              program
+     * @param configs The configs for the twitter bot
+     * @param logger  The logger object to log what happens in the program
+     * @throws Exception
      */
-    protected TwitterApiHandler(String oauth_consumer_key, String oauth_consumer_secret, String oauth_token,
-            String oauth_token_secret, Logger logger) {
+    protected TwitterApiHandler(Properties configs, Logger logger) throws NumberFormatException, Exception {
         this.httpClient = HttpClient.newHttpClient();
-        this.oauth_consumer_key = oauth_consumer_key;
-        this.oauth_consumer_secret = oauth_consumer_secret;
-        this.oauth_token = oauth_token;
-        this.oauth_token_secret = oauth_token_secret;
         this.logger = logger;
+
+        this.SECONDS_TO_WAIT_AFTER_RATE_LIMIT_REACHED = Integer
+                .parseInt(configs.getProperty("SECONDS_TO_WAIT_AFTER_RATE_LIMIT_REACHED_TWITTER_API", "30"));
+        if (this.SECONDS_TO_WAIT_AFTER_RATE_LIMIT_REACHED < 5) {
+            this.logger
+                    .severe("Invalid Integer for SECONDS_TO_WAIT_AFTER_RATE_LIMIT_REACHED_TWITTER_API in config file.");
+            throw new Exception();
+        }
+
+        this.OAUTH_CONSUMER_KEY = configs.getProperty("TWITTER_CONSUMER_KEY");
+        if (this.OAUTH_CONSUMER_KEY == null) {
+            this.logger.severe("NULL Twitter consumer key in config file.");
+            throw new Exception();
+        }
+
+        this.OAUTH_CONSUMER_SECRET = configs.getProperty("TWITTER_CONSUMER_SECRET");
+        if (this.OAUTH_CONSUMER_SECRET == null) {
+            this.logger.severe("NULL Twitter consumer secret in config file.");
+            throw new Exception();
+        }
+
+        this.OAUTH_TOKEN = configs.getProperty("TWITTER_ACCESS_TOKEN");
+        if (this.OAUTH_TOKEN == null) {
+            this.logger.severe("NULL Twitter access token in config file.");
+            throw new Exception();
+        }
+
+        this.OAUTH_TOKEN_SECRET = configs.getProperty("TWITTER_ACCESS_TOKEN_SECRET");
+        if (this.OAUTH_TOKEN_SECRET == null) {
+            this.logger.severe("NULL Twitter access token secret in config file.");
+            throw new Exception();
+        }
     }
 
     /**
@@ -86,9 +114,9 @@ class TwitterApiHandler {
                 return new JSONObject(response.body());
             } else if (response.statusCode() == 429) {
                 // LOG
-                this.logger.warning("Twitter Api Rate Limit reached. Retrying after " + (SECONDS_TO_WAIT_BETWEEN_CALLS)
-                        + " seconds");
-                Thread.sleep(1000 * SECONDS_TO_WAIT_BETWEEN_CALLS);
+                this.logger.warning("Twitter Api Rate Limit reached. Retrying after "
+                        + (SECONDS_TO_WAIT_AFTER_RATE_LIMIT_REACHED) + " seconds");
+                Thread.sleep(1000 * SECONDS_TO_WAIT_AFTER_RATE_LIMIT_REACHED);
                 return tweet(statusToPost);
             } else {
                 // LOG
@@ -164,16 +192,16 @@ class TwitterApiHandler {
      */
     private String generateSignature(String oauthNonce, long oauthTimestamp, String statusToPost)
             throws NoSuchAlgorithmException, InvalidKeyException {
-        String parameterString = "oauth_consumer_key=" + percentEncode(this.oauth_consumer_key) + "&oauth_nonce="
+        String parameterString = "oauth_consumer_key=" + percentEncode(this.OAUTH_CONSUMER_KEY) + "&oauth_nonce="
                 + percentEncode(oauthNonce) + "&oauth_signature_method=" + percentEncode(this.oauth_signature_method)
                 + "&oauth_timestamp=" + percentEncode(Long.toString(oauthTimestamp)) + "&oauth_token="
-                + percentEncode(this.oauth_token) + "&oauth_version=" + percentEncode(this.oauth_version) + "&status="
+                + percentEncode(this.OAUTH_TOKEN) + "&oauth_version=" + percentEncode(this.oauth_version) + "&status="
                 + percentEncode(statusToPost);
 
         String signatureBaseString = "POST&" + percentEncode("https://api.twitter.com/1.1/statuses/update.json") + "&"
                 + percentEncode(parameterString);
 
-        String signingKey = percentEncode(this.oauth_consumer_secret) + "&" + percentEncode(this.oauth_token_secret);
+        String signingKey = percentEncode(this.OAUTH_CONSUMER_SECRET) + "&" + percentEncode(this.OAUTH_TOKEN_SECRET);
 
         Mac mac = Mac.getInstance("HmacSHA1");
         SecretKeySpec secret = new SecretKeySpec(signingKey.getBytes(), "HmacSHA1");
@@ -194,11 +222,11 @@ class TwitterApiHandler {
      * @return The header string value for authentication
      */
     private String generateHeaderString(String oauthNonce, long oauthTimestamp, String oauthSignature) {
-        return "OAuth oauth_consumer_key=\"" + percentEncode(this.oauth_consumer_key) + "\", oauth_nonce=\""
+        return "OAuth oauth_consumer_key=\"" + percentEncode(this.OAUTH_CONSUMER_KEY) + "\", oauth_nonce=\""
                 + percentEncode(oauthNonce) + "\", oauth_signature=\"" + percentEncode(oauthSignature)
                 + "\", oauth_signature_method=\"" + percentEncode(this.oauth_signature_method)
                 + "\", oauth_timestamp=\"" + percentEncode(Long.toString(oauthTimestamp)) + "\", oauth_token=\""
-                + percentEncode(this.oauth_token) + "\", oauth_version=\"" + percentEncode(oauth_version) + "\"";
+                + percentEncode(this.OAUTH_TOKEN) + "\", oauth_version=\"" + percentEncode(oauth_version) + "\"";
     }
 
 }

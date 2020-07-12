@@ -78,4 +78,20 @@ class SoloQueueTeam {
         return this.blueSide;
     }
 
+    /**
+     * Function to check weather there are players with twitch accounts on the team.
+     * 
+     * @return True if there are streamers on this team and false otherwise
+     */
+    protected boolean hasStreamers() {
+        for (Player player : this.players.keySet()) {
+            if (player != null) {
+                if (!player.getTwitchName().equals("") && player.getTwitchName() != null) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
 }

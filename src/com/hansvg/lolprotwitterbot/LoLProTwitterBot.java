@@ -111,13 +111,13 @@ public class LoLProTwitterBot {
                     SoloQueueTeam redTeam = game.getRedTeam();
                     HashMap<Player, Integer> blueTeamStreamers;
                     HashMap<Player, Integer> redTeamStreamers;
-                    if (!blueTeam.getPlayers().isEmpty()) {
+                    if (!blueTeam.getPlayers().isEmpty() && blueTeam.hasStreamers()) {
                         blueTeamStreamers = this.twitchApiHandler.getStreamersOnTeam(game.getBlueTeam(),
                                 game.getLeague());
                     } else {
                         blueTeamStreamers = new HashMap<>();
                     }
-                    if (!redTeam.getPlayers().isEmpty()) {
+                    if (!redTeam.getPlayers().isEmpty() && redTeam.hasStreamers()) {
                         redTeamStreamers = this.twitchApiHandler.getStreamersOnTeam(game.getRedTeam(),
                                 game.getLeague());
                     } else {

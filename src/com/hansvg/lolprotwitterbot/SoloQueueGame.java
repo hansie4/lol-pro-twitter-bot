@@ -205,11 +205,19 @@ class SoloQueueGame {
         System.out.println("-------------------------------------------------");
 
         System.out.println("Streamers: ");
-        for (Entry<Player, Integer> streamer : blueTeamStreamers.entrySet()) {
-            System.out.println("\t" + streamer.getKey().getName() + "\tViewers: " + streamer.getValue());
+        if (blueTeamStreamers != null) {
+            for (Entry<Player, Integer> streamer : blueTeamStreamers.entrySet()) {
+                if (streamer.getKey() != null && streamer.getValue() != null) {
+                    System.out.printf("%20s Viewers: %8d\n", streamer.getKey().getName(), streamer.getValue());
+                }
+            }
         }
-        for (Entry<Player, Integer> streamer : redTeamStreamers.entrySet()) {
-            System.out.println("\t" + streamer.getKey().getName() + "\tViewers: " + streamer.getValue());
+        if (redTeamStreamers != null) {
+            for (Entry<Player, Integer> streamer : redTeamStreamers.entrySet()) {
+                if (streamer.getKey() != null && streamer.getValue() != null) {
+                    System.out.printf("%20s Viewers: %8d\n", streamer.getKey().getName(), streamer.getValue());
+                }
+            }
         }
 
         System.out.println("-------------------------------------------------");

@@ -211,52 +211,59 @@ public class LoLProTwitterBot {
         SoloQueueTeam blueTeam = gameToScore.getBlueTeam();
         SoloQueueTeam redTeam = gameToScore.getRedTeam();
 
-        int gameScore = 0;
-        int numberOfMainTeamPlayers = 0;
-        int numberOfAcademyPlayers = 0;
-        int heighestViewCount = 0;
+        int gameScore;
 
-        for (Player player : blueTeamStreamers.keySet()) {
-            if (player != null) {
-                if (blueTeamStreamers.get(player) > 0) {
-                    if (blueTeamStreamers.get(player) > heighestViewCount) {
-                        heighestViewCount = blueTeamStreamers.get(player);
-                    }
-                }
-            }
-        }
-        for (Player player : redTeamStreamers.keySet()) {
-            if (player != null) {
-                if (redTeamStreamers.get(player) > 0) {
-                    if (redTeamStreamers.get(player) > heighestViewCount) {
-                        heighestViewCount = redTeamStreamers.get(player);
-                    }
-                }
-            }
-        }
+        if ((blueTeam.getPlayers().size() + redTeam.getPlayers().size()) > 1) {
+            int numberOfMainTeamPlayers = 0;
+            int numberOfAcademyPlayers = 0;
+            int heighestViewCount = 0;
 
-        if (heighestViewCount > 0) {
-            for (Player player : blueTeam.getPlayers().keySet()) {
+            for (Player player : blueTeamStreamers.keySet()) {
                 if (player != null) {
-                    if (player.getTeam().contains("Academy") || player.getTeam().contains("academy")) {
-                        numberOfAcademyPlayers++;
-                    } else {
-                        numberOfMainTeamPlayers++;
+                    if (blueTeamStreamers.get(player) > 0) {
+                        if (blueTeamStreamers.get(player) > heighestViewCount) {
+                            heighestViewCount = blueTeamStreamers.get(player);
+                        }
                     }
                 }
             }
-            for (Player player : redTeam.getPlayers().keySet()) {
+            for (Player player : redTeamStreamers.keySet()) {
                 if (player != null) {
-                    if (player.getTeam().contains("Academy") || player.getTeam().contains("academy")) {
-                        numberOfAcademyPlayers++;
-                    } else {
-                        numberOfMainTeamPlayers++;
+                    if (redTeamStreamers.get(player) > 0) {
+                        if (redTeamStreamers.get(player) > heighestViewCount) {
+                            heighestViewCount = redTeamStreamers.get(player);
+                        }
                     }
                 }
             }
 
-            gameScore = (1000 * numberOfMainTeamPlayers) + (500 * numberOfAcademyPlayers)
-                    + (int) (8.5 * Math.pow(heighestViewCount, 0.6));
+            if (heighestViewCount > 0) {
+                for (Player player : blueTeam.getPlayers().keySet()) {
+                    if (player != null) {
+                        if (player.getTeam().contains("Academy") || player.getTeam().contains("academy")) {
+                            numberOfAcademyPlayers++;
+                        } else {
+                            numberOfMainTeamPlayers++;
+                        }
+                    }
+                }
+                for (Player player : redTeam.getPlayers().keySet()) {
+                    if (player != null) {
+                        if (player.getTeam().contains("Academy") || player.getTeam().contains("academy")) {
+                            numberOfAcademyPlayers++;
+                        } else {
+                            numberOfMainTeamPlayers++;
+                        }
+                    }
+                }
+
+                gameScore = (1000 * numberOfMainTeamPlayers) + (500 * numberOfAcademyPlayers)
+                        + (int) (8.5 * Math.pow(heighestViewCount, 0.6));
+            } else {
+                gameScore = 0;
+            }
+        } else {
+            gameScore = 0;
         }
 
         return gameScore;

@@ -90,8 +90,6 @@ public class LoLProTwitterBot {
      */
     public void run(long secondsToRun) throws IOException {
 
-        this.logger.info("LoLProTwitterBot set to run for " + secondsToRun + " seconds");
-
         boolean runningFlag = true;
         long startTime = (System.currentTimeMillis() / 1000);
         long secondsRunning = 0;
@@ -100,6 +98,8 @@ public class LoLProTwitterBot {
         if (!preformSetupTasks()) {
             runningFlag = false;
         }
+
+        this.logger.info("LoLProTwitterBot set to run for " + secondsToRun + " seconds");
 
         // main loop
         while (runningFlag && (secondsRunning < secondsToRun)) {

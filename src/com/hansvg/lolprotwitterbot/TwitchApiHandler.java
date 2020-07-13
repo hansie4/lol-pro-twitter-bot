@@ -367,7 +367,7 @@ class TwitchApiHandler {
         String uri = "https://api.twitch.tv/helix/streams?";
         ArrayList<Player> players = this.getPlayersWithTwtichAccounts(new ArrayList<>(team.getPlayers().keySet()));
         for (int i = 0; i < players.size(); i++) {
-            if (players.get(i).getTwitchUserId() != null || !players.get(i).getTwitchUserId().equals("")) {
+            if (players.get(i).getTwitchUserId() != null && !players.get(i).getTwitchUserId().equals("")) {
                 uri += "user_id=" + players.get(i).getTwitchUserId();
                 if (i != (players.size() - 1)) {
                     uri += "&";

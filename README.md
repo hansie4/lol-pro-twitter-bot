@@ -24,7 +24,7 @@
  Poome,SUPPORT,100 Thieves Academy,poomelol,poome,,100 Poome,
  ```
  If you would like to use my file for the LCS you can find it [here](https://docs.google.com/spreadsheets/d/1ej2HGbZBQM48YklQkzNFfpLEbk0hqklUUVV7C5-eges/edit?usp=sharing). I just download it as a .csv and place it in the data folder.
- The position for each player for should be either TOP, JUNGLE, MID, ADC, or SUPPORT. If something other than these is input, it will default to SUPPORT. The location of this file should be put in the config file.
+ The position for each player for should be either TOP, JUNGLE, MID, ADC, or SUPPORT. If something other than these is input, it will default to SUPPORT. The twitter handles in the file should not include the '@'. The location of this file should be put in the config file.
 
 #### Config File
  The config file is a .properties file that contains all the vital information the twitter bot needs to run. It contains 16 different key value pairs.

@@ -72,6 +72,9 @@
  - Percent encoding
  - HMAC-SHA1 hashing
  
+ ## Libraries Used
+ - org.json json parser library which can be found [here](https://github.com/stleary/JSON-java).
+
  ## Resources Used
  - https://developer.riotgames.com/apis
  - https://dev.twitch.tv/docs/api/

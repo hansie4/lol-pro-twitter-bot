@@ -179,7 +179,6 @@ public class LoLProTwitterBot {
                     && properties.containsKey("TWITTER_CONSUMER_SECRET")
                     && properties.containsKey("TWITTER_ACCESS_TOKEN")
                     && properties.containsKey("TWITTER_ACCESS_TOKEN_SECRET")
-                    && properties.containsKey("SECONDS_TO_RUN_BOT")
                     && properties.containsKey("MINIMUM_GAMESCORE_TO_TWEET")
                     && properties.containsKey("INTERVAL_TO_SCAN_ACTIVE_GAMES_IN_SECONDS")
                     && properties.containsKey("SECONDS_TO_WAIT_AFTER_RATE_LIMIT_REACHED_RIOT_API")

@@ -27,7 +27,7 @@
  The position for each player for should be either TOP, JUNGLE, MID, ADC, or SUPPORT. If something other than these is input, it will default to SUPPORT. The twitter handles in the file should not include the '@'. The location of this file should be put in the config file.
 
 #### Config File
- The config file is a .properties file that contains all the vital information the twitter bot needs to run. It contains 16 different key value pairs.
+ The config file is a .properties file that contains all the vital information the twitter bot needs to run. It contains 15 different key value pairs.
  ex)
  ```
  LOCATION_FOR_LOG_FILE=data\\logs.log
@@ -40,7 +40,6 @@
  TWITTER_CONSUMER_SECRET=
  TWITTER_ACCESS_TOKEN=
  TWITTER_ACCESS_TOKEN_SECRET=
- SECONDS_TO_RUN_BOT=3600
  MINIMUM_GAMESCORE_TO_TWEET=3500
  INTERVAL_TO_SCAN_ACTIVE_GAMES_IN_SECONDS=480
  SECONDS_TO_WAIT_AFTER_RATE_LIMIT_REACHED_RIOT_API=30

@@ -293,10 +293,10 @@ public class LoLProTwitterBot {
         ArrayList<Player> blueTeamPlayers = new ArrayList<>(blueTeam.getPlayers().keySet());
         ArrayList<Player> redTeamPlayers = new ArrayList<>(redTeam.getPlayers().keySet());
 
-        StringBuilder tweetString = new StringBuilder();
+        StringBuilder tweetString = new StringBuilder("(" + gameScore + ")\n");
 
+        // getting the heigest viewed streamer
         Entry<Player, Integer> heighestViewCountStreamer = null;
-
         for (Entry<Player, Integer> entry : blueTeamStreamers.entrySet()) {
             if (entry.getKey() != null) {
                 if (heighestViewCountStreamer == null) {
@@ -306,7 +306,6 @@ public class LoLProTwitterBot {
                 }
             }
         }
-
         for (Entry<Player, Integer> entry : redTeamStreamers.entrySet()) {
             if (entry.getKey() != null) {
                 if (heighestViewCountStreamer == null) {
@@ -317,174 +316,26 @@ public class LoLProTwitterBot {
             }
         }
 
-        if (heighestViewCountStreamer != null) {
-
-            if (!heighestViewCountStreamer.getKey().getTwitterHandle().equals("")) {
-                tweetString
-                        .append("(" + gameScore + ") Watch @" + heighestViewCountStreamer.getKey().getTwitterHandle());
+        tweetString.append("Blue Side: \n");
+        for (Player player : blueTeamPlayers) {
+            if (!player.getTwitterHandle().equals("")) {
+                tweetString.append("    @" + player.getTwitterHandle());
             } else {
-                tweetString.append("(" + gameScore + ") Watch " + heighestViewCountStreamer.getKey().getName());
+                tweetString.append("    " + player.getName());
             }
-
-            // If heighest view streamer is on blue team
-            if (blueTeamPlayers.remove(heighestViewCountStreamer.getKey())) {
-                if (blueTeamPlayers.size() > 1) {
-                    for (int i = 0; i < blueTeamPlayers.size(); i++) {
-                        Player player = blueTeamPlayers.get(i);
-                        if (i == (blueTeamPlayers.size() - 1)) {
-                            tweetString.append(", and ");
-                            if (player.getTwitterHandle().equals("")) {
-                                tweetString.append(player.getName());
-                            } else {
-                                tweetString.append("@" + player.getTwitterHandle());
-                            }
-                        } else {
-                            tweetString.append(", ");
-                            if (player.getTwitterHandle().equals("")) {
-                                tweetString.append(player.getName());
-                            } else {
-                                tweetString.append("@" + player.getTwitterHandle());
-                            }
-                        }
-                    }
-                } else if (blueTeamPlayers.size() == 1) {
-                    tweetString.append(" and ");
-                    if (blueTeamPlayers.get(0).getTwitterHandle().equals("")) {
-                        tweetString.append(blueTeamPlayers.get(0).getName());
-                    } else {
-                        tweetString.append("@" + blueTeamPlayers.get(0).getTwitterHandle());
-                    }
-                } else {
-                    tweetString.append(" play against ");
-                }
-
-                if (redTeamPlayers.size() > 2) {
-                    for (int i = 0; i < redTeamPlayers.size(); i++) {
-                        Player player = redTeamPlayers.get(i);
-                        if (i == (redTeamPlayers.size() - 1)) {
-                            tweetString.append(" and ");
-                            if (player.getTwitterHandle().equals("")) {
-                                tweetString.append(player.getName());
-                            } else {
-                                tweetString.append("@" + player.getTwitterHandle());
-                            }
-                            tweetString.append(".");
-                        } else {
-                            if (player.getTwitterHandle().equals("")) {
-                                tweetString.append(player.getName());
-                            } else {
-                                tweetString.append("@" + player.getTwitterHandle());
-                            }
-                            tweetString.append(", ");
-                        }
-                    }
-                } else if (redTeamPlayers.size() == 2) {
-                    if (redTeamPlayers.get(0).getTwitterHandle().equals("")) {
-                        tweetString.append(redTeamPlayers.get(0).getName());
-                    } else {
-                        tweetString.append("@" + redTeamPlayers.get(0).getTwitterHandle());
-                    }
-                    tweetString.append(" and ");
-                    if (redTeamPlayers.get(1).getTwitterHandle().equals("")) {
-                        tweetString.append(redTeamPlayers.get(1).getName());
-                    } else {
-                        tweetString.append("@" + redTeamPlayers.get(0).getTwitterHandle());
-                    }
-                    tweetString.append(". ");
-                } else if (redTeamPlayers.size() == 1) {
-                    if (redTeamPlayers.get(0).getTwitterHandle().equals("")) {
-                        tweetString.append(redTeamPlayers.get(0).getName());
-                    } else {
-                        tweetString.append("@" + redTeamPlayers.get(0).getTwitterHandle());
-                    }
-                    tweetString.append(". ");
-                } else {
-                    tweetString.append(". ");
-                }
-            }
-            // If heighest view streamer is on blue team
-            else if (redTeamPlayers.remove(heighestViewCountStreamer.getKey())) {
-                if (redTeamPlayers.size() > 1) {
-                    for (int i = 0; i < redTeamPlayers.size(); i++) {
-                        Player player = redTeamPlayers.get(i);
-                        if (i == (redTeamPlayers.size() - 1)) {
-                            tweetString.append(", and ");
-                            if (player.getTwitterHandle().equals("")) {
-                                tweetString.append(player.getName());
-                            } else {
-                                tweetString.append("@" + player.getTwitterHandle());
-                            }
-                        } else {
-                            tweetString.append(", ");
-                            if (player.getTwitterHandle().equals("")) {
-                                tweetString.append(player.getName());
-                            } else {
-                                tweetString.append("@" + player.getTwitterHandle());
-                            }
-                        }
-                    }
-                } else if (redTeamPlayers.size() == 1) {
-                    tweetString.append(" and ");
-                    if (redTeamPlayers.get(0).getTwitterHandle().equals("")) {
-                        tweetString.append(redTeamPlayers.get(0).getName());
-                    } else {
-                        tweetString.append("@" + redTeamPlayers.get(0).getTwitterHandle());
-                    }
-                } else {
-                    tweetString.append(" play against ");
-                }
-
-                if (blueTeamPlayers.size() > 2) {
-                    for (int i = 0; i < blueTeamPlayers.size(); i++) {
-                        Player player = blueTeamPlayers.get(i);
-                        if (i == (blueTeamPlayers.size() - 1)) {
-                            tweetString.append(" and ");
-                            if (player.getTwitterHandle().equals("")) {
-                                tweetString.append(player.getName());
-                            } else {
-                                tweetString.append("@" + player.getTwitterHandle());
-                            }
-                            tweetString.append(".");
-                        } else {
-                            if (player.getTwitterHandle().equals("")) {
-                                tweetString.append(player.getName());
-                            } else {
-                                tweetString.append("@" + player.getTwitterHandle());
-                            }
-                            tweetString.append(", ");
-                        }
-                    }
-                } else if (blueTeamPlayers.size() == 2) {
-                    if (blueTeamPlayers.get(0).getTwitterHandle().equals("")) {
-                        tweetString.append(blueTeamPlayers.get(0).getName());
-                    } else {
-                        tweetString.append("@" + blueTeamPlayers.get(0).getTwitterHandle());
-                    }
-                    tweetString.append(" and ");
-                    if (blueTeamPlayers.get(1).getTwitterHandle().equals("")) {
-                        tweetString.append(blueTeamPlayers.get(1).getName());
-                    } else {
-                        tweetString.append("@" + blueTeamPlayers.get(0).getTwitterHandle());
-                    }
-                    tweetString.append(". ");
-                } else if (blueTeamPlayers.size() == 1) {
-                    if (blueTeamPlayers.get(0).getTwitterHandle().equals("")) {
-                        tweetString.append(blueTeamPlayers.get(0).getName());
-                    } else {
-                        tweetString.append("@" + blueTeamPlayers.get(0).getTwitterHandle());
-                    }
-                    tweetString.append(". ");
-                } else {
-                    tweetString.append(". ");
-                }
-            } else {
-                // should never happen
-            }
-
-            tweetString.append("https://www.twitch.tv/" + heighestViewCountStreamer.getKey().getTwitchName());
-        } else {
-            // should never happen
+            tweetString.append("\n");
         }
+        tweetString.append("Red Side: \n");
+        for (Player player : redTeamPlayers) {
+            if (!player.getTwitterHandle().equals("")) {
+                tweetString.append("    @" + player.getTwitterHandle());
+            } else {
+                tweetString.append("    " + player.getName());
+            }
+            tweetString.append("\n");
+        }
+
+        tweetString.append("Watch here: https://www.twitch.tv/" + heighestViewCountStreamer.getKey().getTwitchName());
 
         return tweetString.toString();
     }

@@ -100,56 +100,106 @@ public class LoLProTwitterBot {
             runningFlag = false;
         }
 
-        this.logger.info("LoLProTwitterBot set to run for " + secondsToRun + " seconds");
+        // checking if to run for a set amount of time or to run continuously
+        if (secondsToRun >= 0) {
+            while (runningFlag && (secondsRunning < secondsToRun)) {
 
-        // main loop
-        while (runningFlag && (secondsRunning < secondsToRun)) {
+                this.logger.info("Scanning for active solo queue games for " + secondsToRun + " seconds");
 
-            this.logger.info("Scanning for active solo queue games");
+                if (this.league.loadActiveSoloQueueGames(this.riotApiHandler)) {
+                    for (SoloQueueGame game : this.league.getActiveSoloQueueGames()) {
 
-            if (this.league.loadActiveSoloQueueGames(this.riotApiHandler)) {
-                for (SoloQueueGame game : this.league.getActiveSoloQueueGames()) {
+                        SoloQueueTeam blueTeam = game.getBlueTeam();
+                        SoloQueueTeam redTeam = game.getRedTeam();
+                        HashMap<Player, Integer> blueTeamStreamers;
+                        HashMap<Player, Integer> redTeamStreamers;
+                        if (!blueTeam.getPlayers().isEmpty() && blueTeam.hasStreamers()) {
+                            blueTeamStreamers = this.twitchApiHandler.getStreamersOnTeam(game.getBlueTeam(),
+                                    game.getLeague());
+                        } else {
+                            blueTeamStreamers = new HashMap<>();
+                        }
+                        if (!redTeam.getPlayers().isEmpty() && redTeam.hasStreamers()) {
+                            redTeamStreamers = this.twitchApiHandler.getStreamersOnTeam(game.getRedTeam(),
+                                    game.getLeague());
+                        } else {
+                            redTeamStreamers = new HashMap<>();
+                        }
 
-                    SoloQueueTeam blueTeam = game.getBlueTeam();
-                    SoloQueueTeam redTeam = game.getRedTeam();
-                    HashMap<Player, Integer> blueTeamStreamers;
-                    HashMap<Player, Integer> redTeamStreamers;
-                    if (!blueTeam.getPlayers().isEmpty() && blueTeam.hasStreamers()) {
-                        blueTeamStreamers = this.twitchApiHandler.getStreamersOnTeam(game.getBlueTeam(),
-                                game.getLeague());
-                    } else {
-                        blueTeamStreamers = new HashMap<>();
-                    }
-                    if (!redTeam.getPlayers().isEmpty() && redTeam.hasStreamers()) {
-                        redTeamStreamers = this.twitchApiHandler.getStreamersOnTeam(game.getRedTeam(),
-                                game.getLeague());
-                    } else {
-                        redTeamStreamers = new HashMap<>();
-                    }
+                        int gameScore = this.calculateGameScore(game, blueTeamStreamers, redTeamStreamers);
+                        System.out
+                                .println("-----------------------GameScore: " + gameScore + "-----------------------");
+                        game.printGameInfo(blueTeamStreamers, redTeamStreamers);
 
-                    int gameScore = this.calculateGameScore(game, blueTeamStreamers, redTeamStreamers);
-                    System.out.println("-----------------------GameScore: " + gameScore + "-----------------------");
-                    game.printGameInfo(blueTeamStreamers, redTeamStreamers);
-
-                    if (gameScore >= MINIMUM_GAMESCORE_TO_TWEET && !gameAlreadyTweeted(game)) {
-                        JSONObject tweet = this.twitterApiHandler
-                                .tweet(createTweet(game, blueTeamStreamers, redTeamStreamers, gameScore));
-                        this.tweetedGames.put(game, tweet);
+                        if (gameScore >= MINIMUM_GAMESCORE_TO_TWEET && !gameAlreadyTweeted(game)) {
+                            JSONObject tweet = this.twitterApiHandler
+                                    .tweet(createTweet(game, blueTeamStreamers, redTeamStreamers, gameScore));
+                            this.tweetedGames.put(game, tweet);
+                        }
                     }
                 }
+
+                this.logger.info("Waiting " + (INTERVAL_TO_SCAN_ACTIVE_GAMES_IN_SECONDS) + " seconds till next scan");
+
+                try {
+                    Thread.sleep(INTERVAL_TO_SCAN_ACTIVE_GAMES_IN_SECONDS * 1000);
+                } catch (InterruptedException e) {
+                    this.logger.severe("InterruptedException");
+                    this.preformClosingTasks();
+                    System.exit(1);
+                }
+
+                secondsRunning = (System.currentTimeMillis() / 1000) - startTime;
             }
+        } else {
+            while (runningFlag) {
+                this.logger.info("Scanning for active solo queue games continuously");
 
-            this.logger.info("Waiting " + (INTERVAL_TO_SCAN_ACTIVE_GAMES_IN_SECONDS) + " seconds till next scan");
+                if (this.league.loadActiveSoloQueueGames(this.riotApiHandler)) {
+                    for (SoloQueueGame game : this.league.getActiveSoloQueueGames()) {
 
-            try {
-                Thread.sleep(INTERVAL_TO_SCAN_ACTIVE_GAMES_IN_SECONDS * 1000);
-            } catch (InterruptedException e) {
-                this.logger.severe("InterruptedException");
-                this.preformClosingTasks();
-                System.exit(1);
+                        SoloQueueTeam blueTeam = game.getBlueTeam();
+                        SoloQueueTeam redTeam = game.getRedTeam();
+                        HashMap<Player, Integer> blueTeamStreamers;
+                        HashMap<Player, Integer> redTeamStreamers;
+                        if (!blueTeam.getPlayers().isEmpty() && blueTeam.hasStreamers()) {
+                            blueTeamStreamers = this.twitchApiHandler.getStreamersOnTeam(game.getBlueTeam(),
+                                    game.getLeague());
+                        } else {
+                            blueTeamStreamers = new HashMap<>();
+                        }
+                        if (!redTeam.getPlayers().isEmpty() && redTeam.hasStreamers()) {
+                            redTeamStreamers = this.twitchApiHandler.getStreamersOnTeam(game.getRedTeam(),
+                                    game.getLeague());
+                        } else {
+                            redTeamStreamers = new HashMap<>();
+                        }
+
+                        int gameScore = this.calculateGameScore(game, blueTeamStreamers, redTeamStreamers);
+                        System.out
+                                .println("-----------------------GameScore: " + gameScore + "-----------------------");
+                        game.printGameInfo(blueTeamStreamers, redTeamStreamers);
+
+                        if (gameScore >= MINIMUM_GAMESCORE_TO_TWEET && !gameAlreadyTweeted(game)) {
+                            JSONObject tweet = this.twitterApiHandler
+                                    .tweet(createTweet(game, blueTeamStreamers, redTeamStreamers, gameScore));
+                            this.tweetedGames.put(game, tweet);
+                        }
+                    }
+                }
+
+                this.logger.info("Waiting " + (INTERVAL_TO_SCAN_ACTIVE_GAMES_IN_SECONDS) + " seconds till next scan");
+
+                try {
+                    Thread.sleep(INTERVAL_TO_SCAN_ACTIVE_GAMES_IN_SECONDS * 1000);
+                } catch (InterruptedException e) {
+                    this.logger.severe("InterruptedException");
+                    this.preformClosingTasks();
+                    System.exit(1);
+                }
+
+                secondsRunning = (System.currentTimeMillis() / 1000) - startTime;
             }
-
-            secondsRunning = (System.currentTimeMillis() / 1000) - startTime;
         }
 
         this.logger.info("LoLProTwitterBot finished running after " + secondsRunning + " seconds");

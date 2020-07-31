@@ -6,7 +6,7 @@
 
 ## How to use lol-pro-twitter-bot
 
- To use the twitter bot, run the main method in the Main class with the location of the config file and how long you would like the bot to run for in seconds, passed in as command line arguments. The location of the config file first and an integer for the time to run in seconds, second.
+ To use the twitter bot, run the main method in the Main class with the location of the config file and how long you would like the bot to run for in seconds(enter a negative value for the bot to run till forcably forcibly), passed in as command line arguments. The location of the config file first and an integer for the time to run in seconds, second.
  
 ## Files
 #### Player Roster File

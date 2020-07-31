@@ -317,21 +317,30 @@ public class LoLProTwitterBot {
         }
 
         tweetString.append("Blue Side: \n");
-        for (Player player : blueTeamPlayers) {
-            if (!player.getTwitterHandle().equals("")) {
-                tweetString.append("    @" + player.getTwitterHandle());
-            } else {
-                tweetString.append("    " + player.getName());
+        if (!blueTeamPlayers.isEmpty()) {
+            for (Player player : blueTeamPlayers) {
+                if (!player.getTwitterHandle().equals("")) {
+                    tweetString.append("    @" + player.getTwitterHandle());
+                } else {
+                    tweetString.append("    " + player.getName());
+                }
+                tweetString.append("\n");
             }
+        } else {
             tweetString.append("\n");
         }
+
         tweetString.append("Red Side: \n");
-        for (Player player : redTeamPlayers) {
-            if (!player.getTwitterHandle().equals("")) {
-                tweetString.append("    @" + player.getTwitterHandle());
-            } else {
-                tweetString.append("    " + player.getName());
+        if (!redTeamPlayers.isEmpty()) {
+            for (Player player : redTeamPlayers) {
+                if (!player.getTwitterHandle().equals("")) {
+                    tweetString.append("    @" + player.getTwitterHandle());
+                } else {
+                    tweetString.append("    " + player.getName());
+                }
+                tweetString.append("\n");
             }
+        } else {
             tweetString.append("\n");
         }
 

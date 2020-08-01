@@ -372,7 +372,7 @@ public class LoLProTwitterBot {
                 if (!player.getTwitterHandle().equals("")) {
                     tweetString.append("    @" + player.getTwitterHandle());
                 } else {
-                    tweetString.append("    " + player.getName());
+                    tweetString.append("    " + player.getTeam() + " " + player.getName());
                 }
                 tweetString.append("\n");
             }
@@ -386,7 +386,7 @@ public class LoLProTwitterBot {
                 if (!player.getTwitterHandle().equals("")) {
                     tweetString.append("    @" + player.getTwitterHandle());
                 } else {
-                    tweetString.append("    " + player.getName());
+                    tweetString.append("    " + player.getTeam() + " " + player.getName());
                 }
                 tweetString.append("\n");
             }

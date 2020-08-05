@@ -1,4 +1,4 @@
-import com.hansvg.lolprotwitterbot.LoLProTwitterBot;
+package com.hansvg.lolprotwitterbot;
 
 public class Main {
 

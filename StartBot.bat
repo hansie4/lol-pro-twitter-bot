@@ -1,1 +1,1 @@
-java -jar LoLProTwitterBot.jar data/config.properties 3600
+java -jar LoLProTwitterBot.jar data/config.properties -1

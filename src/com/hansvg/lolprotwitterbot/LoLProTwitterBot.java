@@ -165,12 +165,18 @@ public class LoLProTwitterBot {
                         if (!blueTeam.getPlayers().isEmpty() && blueTeam.hasStreamers()) {
                             blueTeamStreamers = this.twitchApiHandler.getStreamersOnTeam(game.getBlueTeam(),
                                     game.getLeague());
+                            if (blueTeamStreamers != null) {
+                                blueTeamStreamers = new HashMap<>();
+                            }
                         } else {
                             blueTeamStreamers = new HashMap<>();
                         }
                         if (!redTeam.getPlayers().isEmpty() && redTeam.hasStreamers()) {
                             redTeamStreamers = this.twitchApiHandler.getStreamersOnTeam(game.getRedTeam(),
                                     game.getLeague());
+                            if (redTeamStreamers != null) {
+                                redTeamStreamers = new HashMap<>();
+                            }
                         } else {
                             redTeamStreamers = new HashMap<>();
                         }

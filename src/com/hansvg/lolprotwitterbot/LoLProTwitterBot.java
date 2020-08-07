@@ -116,8 +116,8 @@ public class LoLProTwitterBot {
                         if (!blueTeam.getPlayers().isEmpty() && blueTeam.hasStreamers()) {
                             blueTeamStreamers = this.twitchApiHandler.getStreamersOnTeam(game.getBlueTeam(),
                                     game.getLeague());
-                            if(blueTeamStreamers != null) {
-                            	blueTeamStreamers = new HashMap<>();
+                            if (blueTeamStreamers != null) {
+                                blueTeamStreamers = new HashMap<>();
                             }
                         } else {
                             blueTeamStreamers = new HashMap<>();
@@ -125,8 +125,8 @@ public class LoLProTwitterBot {
                         if (!redTeam.getPlayers().isEmpty() && redTeam.hasStreamers()) {
                             redTeamStreamers = this.twitchApiHandler.getStreamersOnTeam(game.getRedTeam(),
                                     game.getLeague());
-                            if(redTeamStreamers != null) {
-                            	redTeamStreamers = new HashMap<>();
+                            if (redTeamStreamers != null) {
+                                redTeamStreamers = new HashMap<>();
                             }
                         } else {
                             redTeamStreamers = new HashMap<>();
@@ -440,6 +440,7 @@ public class LoLProTwitterBot {
             return false;
         }
         if (!this.twitchApiHandler.loadToken()) {
+            this.twitchApiHandler.revokeToken();
             return false;
         }
         if (!this.league.loadPlayers(this.playerRosterFile)) {
@@ -455,14 +456,12 @@ public class LoLProTwitterBot {
     }
 
     /**
-     * Method to close the logger and revoke the twitch authentication token when
-     * closing the program.
+     * Method to close the logger when closing the program.
      * 
      * @return True if closing tasks preformed successfully and false otherwise
      */
     private boolean preformClosingTasks() {
         try {
-            this.twitchApiHandler.revokeToken();
             this.logger.info("Closing Logger");
             for (Handler handler : this.logger.getHandlers()) {
                 handler.close();

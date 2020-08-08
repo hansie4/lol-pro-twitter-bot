@@ -205,6 +205,7 @@ class SoloQueueGame {
         System.out.println("-------------------------------------------------");
 
         System.out.println("Streamers: ");
+        System.out.println(" Blue Team:");
         if (blueTeamStreamers != null) {
             for (Entry<Player, Integer> streamer : blueTeamStreamers.entrySet()) {
                 if (streamer.getKey() != null && streamer.getValue() != null) {
@@ -212,6 +213,7 @@ class SoloQueueGame {
                 }
             }
         }
+        System.out.println(" Red Team:");
         if (redTeamStreamers != null) {
             for (Entry<Player, Integer> streamer : redTeamStreamers.entrySet()) {
                 if (streamer.getKey() != null && streamer.getValue() != null) {

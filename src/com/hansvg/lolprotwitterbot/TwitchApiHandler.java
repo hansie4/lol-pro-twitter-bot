@@ -168,7 +168,6 @@ class TwitchApiHandler {
      * @return true if the ids are loaded successfully and false otherwise
      */
     protected boolean loadTwitchUserIds(League league) {
-        this.loadToken();
         try {
             ArrayList<Player> playersToLoadIdsFor = getPlayersWithTwtichAccounts(league.getPlayers());
 
@@ -211,22 +210,18 @@ class TwitchApiHandler {
                             "Error loading twitch user ids from Twitch Api. Status Code: " + response.statusCode());
                 }
             }
-            this.revokeToken();
             return true;
         } catch (URISyntaxException e) {
             // LOG
             this.logger.severe("URISyntaxException");
-            this.revokeToken();
             return false;
         } catch (IOException e) {
             // LOG
             this.logger.severe("IOException");
-            this.revokeToken();
             return false;
         } catch (InterruptedException e) {
             // LOG
             this.logger.severe("InterruptedException");
-            this.revokeToken();
             return false;
         }
     }
@@ -240,7 +235,6 @@ class TwitchApiHandler {
      *         representing the players view count as the value
      */
     protected HashMap<Player, Integer> getStreamersOnTeam(SoloQueueTeam team, League league) {
-        this.loadToken();
         try {
 
             HashMap<Player, Integer> streamers = new HashMap<>();
@@ -282,20 +276,16 @@ class TwitchApiHandler {
                 this.logger.warning(
                         "Error loading stream information from Twitch Api. Status Code: " + response.statusCode());
             }
-            this.revokeToken();
             return streamers;
         } catch (URISyntaxException e) {
             this.logger.severe("URISyntaxException");
-            this.revokeToken();
-            return null;
+            return new HashMap<>();
         } catch (IOException e) {
             this.logger.severe("IOException");
-            this.revokeToken();
-            return null;
+            return new HashMap<>();
         } catch (InterruptedException e) {
             this.logger.severe("InterruptedException");
-            this.revokeToken();
-            return null;
+            return new HashMap<>();
         }
     }
 

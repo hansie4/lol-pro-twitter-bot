@@ -109,25 +109,19 @@ public class LoLProTwitterBot {
                 if (this.league.loadActiveSoloQueueGames(this.riotApiHandler)) {
                     for (SoloQueueGame game : this.league.getActiveSoloQueueGames()) {
 
-                        SoloQueueTeam blueTeam = game.getBlueTeam();
-                        SoloQueueTeam redTeam = game.getRedTeam();
                         HashMap<Player, Integer> blueTeamStreamers;
                         HashMap<Player, Integer> redTeamStreamers;
-                        if (!blueTeam.getPlayers().isEmpty() && blueTeam.hasStreamers()) {
+
+                        if (game.getBlueTeam().hasStreamers()) {
                             blueTeamStreamers = this.twitchApiHandler.getStreamersOnTeam(game.getBlueTeam(),
                                     game.getLeague());
-                            if (blueTeamStreamers != null) {
-                                blueTeamStreamers = new HashMap<>();
-                            }
                         } else {
                             blueTeamStreamers = new HashMap<>();
                         }
-                        if (!redTeam.getPlayers().isEmpty() && redTeam.hasStreamers()) {
+
+                        if (game.getRedTeam().hasStreamers()) {
                             redTeamStreamers = this.twitchApiHandler.getStreamersOnTeam(game.getRedTeam(),
                                     game.getLeague());
-                            if (redTeamStreamers != null) {
-                                redTeamStreamers = new HashMap<>();
-                            }
                         } else {
                             redTeamStreamers = new HashMap<>();
                         }
@@ -164,25 +158,19 @@ public class LoLProTwitterBot {
                 if (this.league.loadActiveSoloQueueGames(this.riotApiHandler)) {
                     for (SoloQueueGame game : this.league.getActiveSoloQueueGames()) {
 
-                        SoloQueueTeam blueTeam = game.getBlueTeam();
-                        SoloQueueTeam redTeam = game.getRedTeam();
                         HashMap<Player, Integer> blueTeamStreamers;
                         HashMap<Player, Integer> redTeamStreamers;
-                        if (!blueTeam.getPlayers().isEmpty() && blueTeam.hasStreamers()) {
+
+                        if (game.getBlueTeam().hasStreamers()) {
                             blueTeamStreamers = this.twitchApiHandler.getStreamersOnTeam(game.getBlueTeam(),
                                     game.getLeague());
-                            if (blueTeamStreamers != null) {
-                                blueTeamStreamers = new HashMap<>();
-                            }
                         } else {
                             blueTeamStreamers = new HashMap<>();
                         }
-                        if (!redTeam.getPlayers().isEmpty() && redTeam.hasStreamers()) {
+
+                        if (game.getRedTeam().hasStreamers()) {
                             redTeamStreamers = this.twitchApiHandler.getStreamersOnTeam(game.getRedTeam(),
                                     game.getLeague());
-                            if (redTeamStreamers != null) {
-                                redTeamStreamers = new HashMap<>();
-                            }
                         } else {
                             redTeamStreamers = new HashMap<>();
                         }
@@ -440,7 +428,6 @@ public class LoLProTwitterBot {
             return false;
         }
         if (!this.twitchApiHandler.loadToken()) {
-            this.twitchApiHandler.revokeToken();
             return false;
         }
         if (!this.league.loadPlayers(this.playerRosterFile)) {
@@ -462,6 +449,7 @@ public class LoLProTwitterBot {
      */
     private boolean preformClosingTasks() {
         try {
+            this.twitchApiHandler.revokeToken();
             this.logger.info("Closing Logger");
             for (Handler handler : this.logger.getHandlers()) {
                 handler.close();

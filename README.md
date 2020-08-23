@@ -2,7 +2,7 @@
 
 ## Introduction
 
- A Java program that uses the Riot Games, Twitch, and Twitter Api's to tweet out whenever a pro League Of Legends player, or any player who's information is included in the player roster file, gets into a solo queue game that is has a "GameScore", read below for more info, value that is greater than or equal to the MINIMUM_GAMESCORE_TO_TWEET value in the config file and has an active streamer in the game. You can find my personal twitter bot [here](https://twitter.com/lol_pro_watch).
+ A Java program that uses the Riot Games, Twitch, and Twitter Api's to tweet out whenever a pro League Of Legends player, or any player who's information is included in the player roster file, gets into a solo queue game that is has a "GameScore", read below for more info, value that is greater than or equal to the MINIMUM_GAMESCORE_TO_TWEET value in the config file, and has an active streamer in the game. You can find my personal twitter bot [here](https://twitter.com/lol_pro_watch).
 
 ## How to use lol-pro-twitter-bot
 
